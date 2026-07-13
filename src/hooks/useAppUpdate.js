@@ -6,8 +6,10 @@ import {
   installDownloadedApk,
 } from '../lib/apkUpdater'
 
+import { APP_BUILD } from '../generated/buildNumber'
+
 export const REPO = 'veerverma828/Torrent-android'
-export const CURRENT_BUILD = Number(import.meta.env.VITE_APP_BUILD || 0)
+export const CURRENT_BUILD = APP_BUILD
 const DISMISSED_KEY = 'torrent-update-dismissed-build'
 
 // Release tags are "apk-<run_number>" (see .github/workflows/build-apk.yml),

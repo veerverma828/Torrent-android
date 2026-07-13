@@ -39,6 +39,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Write build number
+        run: |
+          echo "export const APP_BUILD = ${{ steps.build_number.outputs.build }};" > src/generated/buildNumber.js
+
       - name: Bundle React Native JS
         run: |
           npx react-native bundle \
