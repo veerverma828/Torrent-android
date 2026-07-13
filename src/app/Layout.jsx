@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useState } from "react";
-import { Outlet, useLocation } from "react-router-dom";
+import { useRoute } from "@react-navigation/native";
 import { useAppContext } from "../context/AppContext.jsx";
 import { usePlayerContext } from "../context/PlayerContext.jsx";
 import { useSettingsContext } from "../context/SettingsContext.jsx";
@@ -18,8 +18,9 @@ import "../components/modals/SettingsModal.css";
 const VideoPlayer = lazy(() => import("../components/player/VideoPlayer.jsx"));
 const SettingsModal = lazy(() => import("../components/modals/SettingsModal.jsx"));
 
-export default function Layout() {
-  const location = useLocation();
+export default function Layout({ children }) {
+  const route = useRoute();
+  const routeParams = route.params || {};
 
   const { results, seasons, episodes, selectedSeason } = useAppContext();
   const { streamUrl, fileModalData, setFileModalData, setStreamUrl } = usePlayerContext();
@@ -58,7 +59,7 @@ export default function Layout() {
       let target = null;
       let shouldScrollToTop = false;
 
-      const isEpisodeRoute = /\/series\/.*\/season\/\d+\/episode\/\d+/i.test(location.pathname);
+      const isEpisodeRoute = route.name === "Series" && routeParams.season != null && routeParams.episode != null;
 
       if (fileModalData) {
         target = document.querySelector(".file-item");
@@ -92,16 +93,11 @@ export default function Layout() {
     timeoutId = setTimeout(tryFocus, 50);
 
     return () => clearTimeout(timeoutId);
-  }, [results, seasons, episodes, selectedSeason, fileModalData, location.pathname]);
+  }, [results, seasons, episodes, selectedSeason, fileModalData, route.name, routeParams.season, routeParams.episode]);
 
-  // Route-based modal syncing (close modals on back press)
-  useEffect(() => {
-    const searchParams = new URLSearchParams(location.search);
-    const modal = searchParams.get("modal");
-
-    if (modal !== "file") setFileModalData(null);
-    if (modal !== "stream") setStreamUrl(null);
-  }, [location.search, setFileModalData, setStreamUrl]);
+  // Modal state (file picker / stream player) now lives purely in
+  // PlayerContext rather than being mirrored into the URL — the Android
+  // hardware back button closes them via useHardwareBack instead.
 
   return (
     <div className="app-container min-h-screen bg-bg-base text-text-primary font-sans">
@@ -144,7 +140,7 @@ export default function Layout() {
       {/* No route transition animation: mode="wait" forced an exit fade +
           enter fade in sequence, adding ~250ms of dead time to every
           navigation. Instant swap feels dramatically faster on TV. */}
-      <Outlet />
+      {children}
 
       {playerEverOpened && (
         <Suspense fallback={null}>

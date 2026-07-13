@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useParams, useLocation, useNavigate } from "react-router-dom";
+import { useRoute, useNavigation } from "@react-navigation/native";
 import { motion } from "framer-motion";
 import { Star, Film, Cable } from "lucide-react";
 import { useAppContext } from "../../context/AppContext.jsx";
@@ -11,9 +11,9 @@ import ResultCard from "../../components/cards/ResultCard.jsx";
 import "./MoviePage.css";
 
 export default function MoviePage() {
-  const { id } = useParams();
-  const location = useLocation();
-  const navigate = useNavigate();
+  const route = useRoute();
+  const { id } = route.params || {};
+  const navigation = useNavigation();
 
   const { setSelectedItem, setResults, setLoading, loading, results } = useAppContext();
   const { addonApis } = useSettingsContext();
@@ -38,16 +38,13 @@ export default function MoviePage() {
   }, [id]);
 
   useEffect(() => {
-    const stateItem = location.state?.item;
-    const autoPlayMagnet = location.state?.autoPlayMagnet;
+    const stateItem = route.params?.item;
+    const autoPlayMagnet = route.params?.autoPlayMagnet;
 
     setSelectedItem(stateItem || { id, name: "Movie", type: "movie" });
 
     if (autoPlayMagnet) {
-      navigate(location.pathname, {
-        state: { ...location.state, autoPlayMagnet: null },
-        replace: true,
-      });
+      navigation.setParams({ autoPlayMagnet: null });
       initActionRef.current(autoPlayMagnet, "stream", true);
     }
 
@@ -62,7 +59,7 @@ export default function MoviePage() {
         setLoading(false);
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, addonApis, location.pathname]);
+  }, [id, addonApis]);
 
   return (
     <div className="movie-page-wrapper" style={{ padding: "0 10px" }}>

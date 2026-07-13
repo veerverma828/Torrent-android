@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigation } from "@react-navigation/native";
 import { useAppContext } from "../../context/AppContext.jsx";
 import appLogoPng from "../../../Images/title-logo-600.png";
 import appLogoWebp from "../../../Images/title-logo-600.webp";
 
 export default function Header() {
-  const navigate = useNavigate();
+  const navigation = useNavigation();
   const { setQuery } = useAppContext();
   const [scrolled, setScrolled] = useState(false);
 
@@ -34,7 +34,7 @@ export default function Header() {
           fetchPriority="high"
           onClick={() => {
             setQuery("");
-            navigate("/");
+            navigation.navigate("Home");
           }}
         />
       </picture>

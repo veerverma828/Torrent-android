@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
 import { View, Text, StyleSheet, Pressable, ActivityIndicator, Alert, Linking } from "react-native";
-import QRCode from "qrcode.react"; // Fallback placeholder if not importing SVG directly
 import QRCodeSVG from "react-native-qrcode-svg";
 import { WifiOff, RefreshCw, CheckCircle2, Copy, Check } from "lucide-react-native";
 import Clipboard from "@react-native-clipboard/clipboard";

@@ -1,4 +1,4 @@
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigation } from "@react-navigation/native";
 import { useAppContext } from "../context/AppContext.jsx";
 import { useSettingsContext } from "../context/SettingsContext.jsx";
 import { usePlayerContext } from "../context/PlayerContext.jsx";
@@ -9,8 +9,7 @@ import { showToast } from "../components/common/Toast.jsx";
 import { isNativePlayerAvailable } from "../lib/nativePlayer.js";
 
 export function useStreamActions() {
-  const navigate = useNavigate();
-  const location = useLocation();
+  const navigation = useNavigation();
 
   const { setResults } = useAppContext();
   const { debridService, realDebridApiKey, torboxApiKey, playbackSource, setIsSettingsOpen, setSettingsTab } =
@@ -51,16 +50,12 @@ export function useStreamActions() {
         if (fileModalData) setFileModalData(null);
 
         if (action === "download") {
-          if (fileModalData) navigate(-1);
+          if (fileModalData && navigation.canGoBack()) navigation.goBack();
           window.open(data.downloadUrl);
         } else if (action === "stream") {
-          navigate(`${location.pathname}?modal=stream`, {
-            state: location.state,
-            replace: !!fileModalData,
-          });
           setStreamUrl(data.downloadUrl);
         } else if (action === "external") {
-          if (fileModalData) navigate(-1);
+          if (fileModalData && navigation.canGoBack()) navigation.goBack();
           openExternalPlayer(data.downloadUrl);
         }
       } else {
@@ -83,7 +78,6 @@ export function useStreamActions() {
       if (actionType === "download") {
         openDirectDownload(magnetOrUrl);
       } else if (actionType === "stream") {
-        navigate(`${location.pathname}?modal=stream`, { state: location.state });
         setStreamUrl(magnetOrUrl);
       } else if (actionType === "external") {
         openExternalPlayer(magnetOrUrl);
@@ -102,7 +96,6 @@ export function useStreamActions() {
       }
       // No toast here — the player opens immediately and shows its own
       // branded loading state with live stage text until the stream resolves.
-      navigate(`${location.pathname}?modal=stream`, { state: location.state });
       setStreamUrl(magnetOrUrl); // a magnet: URL — VideoPlayer torrent-streams it
       return;
     }
@@ -117,7 +110,6 @@ export function useStreamActions() {
         if (autoPlayFirst) {
           await selectFileAndExecute(data.files[0].id, data.torrentId, actionType);
         } else {
-          navigate(`${location.pathname}?modal=file`, { state: location.state });
           setFileModalData({
             magnet: magnetOrUrl,
             torrentId: data.torrentId,

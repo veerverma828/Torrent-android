@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate, useLocation, matchPath } from "react-router-dom";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import { useMediaContext } from "../../context/AppContext.jsx";
@@ -40,8 +40,8 @@ function seriesSubtitle(meta) {
 }
 
 export default function VideoPlayer() {
-  const navigate = useNavigate();
-  const location = useLocation();
+  const navigation = useNavigation();
+  const route = useRoute();
   const hasLoggedStreamError = useRef(false);
   const timeoutRef = useRef(null);
   const playbackEventHandlerRef = useRef(null);
@@ -55,9 +55,21 @@ export default function VideoPlayer() {
   const debridKey = debridService === "real-debrid" ? realDebridApiKey : torboxApiKey;
   const { streamUrl, setStreamUrl, videoRef, currentMagnet } = usePlayerContext();
 
-  const movieMatch = useMemo(() => matchPath("/movie/:id", location.pathname), [location.pathname]);
+  const movieMatch = useMemo(() => {
+    if (route.name !== "Movie") return null;
+    return { params: { id: route.params?.id } };
+  }, [route.name, route.params]);
 
-  const episodeMatch = useMemo(() => matchPath("/series/:id/season/:season/episode/:episode", location.pathname), [location.pathname]);
+  const episodeMatch = useMemo(() => {
+    if (route.name !== "Series" || route.params?.season == null || route.params?.episode == null) return null;
+    return {
+      params: {
+        id: route.params?.id,
+        season: route.params?.season,
+        episode: route.params?.episode,
+      },
+    };
+  }, [route.name, route.params]);
 
   const episodeMetadata = useMemo(() => {
     if (!episodeMatch) return null;
@@ -294,7 +306,7 @@ export default function VideoPlayer() {
       if (disposed) return;
       disposed = true;
       setStreamUrl(null);
-      navigate(-1);
+      if (navigation.canGoBack()) navigation.goBack();
     }));
     // P2P resolve progress is now shown inside PlayerActivity itself (native
     // loading overlay), not as a web toast — torrentStatus is no longer
@@ -356,7 +368,7 @@ export default function VideoPlayer() {
       playbackEventHandlerRef.current = null;
     }
     
-    navigate(-1);
+    if (navigation.canGoBack()) navigation.goBack();
   };
 
   const handleRetry = () => {

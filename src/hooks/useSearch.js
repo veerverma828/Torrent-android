@@ -1,5 +1,5 @@
 import { useEffect, useCallback, useRef } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import {
   useCatalogContext,
   useMediaContext,
@@ -15,8 +15,8 @@ import {
 } from "../services/cinemeta.js";
 
 export function useSearch() {
-  const navigate = useNavigate();
-  const location = useLocation();
+  const navigation = useNavigation();
+  const route = useRoute();
   const contentSearchRequestId = useRef(0);
   const contentSearchAbortController = useRef(null);
   const torrentSearchRequestId = useRef(0);
@@ -60,7 +60,7 @@ export function useSearch() {
     contentSearchAbortController.current = controller;
 
     setLoading(true);
-    navigate("/");
+    navigation.navigate("Home");
 
     try {
       const [movieList, seriesList] = await Promise.all([
@@ -89,7 +89,7 @@ export function useSearch() {
         setLoading(false);
       }
     }
-  }, [query, navigate, setLoading, setMovies, setSeries, setSelectedItem, setResults]);
+  }, [query, navigation, setLoading, setMovies, setSeries, setSelectedItem, setResults]);
 
   const searchTorrents = useCallback(async () => {
     const trimmedQuery = query.trim();
@@ -113,7 +113,7 @@ export function useSearch() {
 
     if (imdbMode && !useJackett) {
       setLoading(false);
-      navigate(`/movie/${trimmedQuery}`);
+      navigation.navigate("Movie", { id: trimmedQuery });
       return;
     }
 
@@ -144,7 +144,7 @@ export function useSearch() {
         setLoading(false);
       }
     }
-  }, [query, imdbMode, useJackett, navigate, setLoading, setResults]);
+  }, [query, imdbMode, useJackett, navigation, setLoading, setResults]);
 
   useEffect(() => {
     if (!autoSearch) return;
@@ -167,7 +167,7 @@ export function useSearch() {
       setMovies(defaultMovies);
       setSeries(defaultSeries);
 
-      if (location.pathname === "/") {
+      if (route.name === "Home") {
         setResults([]);
         setSelectedItem(null);
         setSelectedSeason(null);
@@ -175,7 +175,7 @@ export function useSearch() {
         setEpisodes([]);
       }
     }
-  }, [query, defaultMovies, defaultSeries, location.pathname, setMovies, setSeries, setResults, setSelectedItem, setSelectedSeason, setSeasons, setEpisodes]);
+  }, [query, defaultMovies, defaultSeries, route.name, setMovies, setSeries, setResults, setSelectedItem, setSelectedSeason, setSeasons, setEpisodes]);
 
   const hasFetchedCatalog = useRef(false);
 

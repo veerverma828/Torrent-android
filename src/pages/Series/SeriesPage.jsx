@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useParams, useLocation, useNavigate } from "react-router-dom";
+import { useRoute, useNavigation } from "@react-navigation/native";
 import { motion, AnimatePresence } from "framer-motion";
 import { Star, Film, Cable, ChevronLeft, ChevronRight } from "lucide-react";
 import { useAppContext } from "../../context/AppContext.jsx";
@@ -16,9 +16,9 @@ import "./SeriesPage.css";
 // Entry stagger removed for speed — long episode lists took ~1s+ to reveal.
 
 export default function SeriesPage() {
-  const { id, season: seasonParam, episode: episodeParam } = useParams();
-  const location = useLocation();
-  const navigate = useNavigate();
+  const route = useRoute();
+  const { id, season: seasonParam, episode: episodeParam } = route.params || {};
+  const navigation = useNavigation();
 
   const {
     selectedItem,
@@ -124,8 +124,8 @@ export default function SeriesPage() {
   }, [id]);
 
   useEffect(() => {
-    const stateItem = location.state?.item;
-    const autoPlayMagnet = location.state?.autoPlayMagnet;
+    const stateItem = route.params?.item;
+    const autoPlayMagnet = route.params?.autoPlayMagnet;
     const isEpisodePath = !!(seasonParam && episodeParam);
 
     setSelectedItem(
@@ -137,10 +137,7 @@ export default function SeriesPage() {
     );
 
     if (autoPlayMagnet) {
-      navigate(location.pathname, {
-        state: { ...location.state, autoPlayMagnet: null },
-        replace: true,
-      });
+      navigation.setParams({ autoPlayMagnet: null });
       initActionRef.current(autoPlayMagnet, "stream", true);
     }
 
@@ -172,7 +169,7 @@ export default function SeriesPage() {
       setResults([]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, seasonParam, episodeParam, addonApis, location.pathname]);
+  }, [id, seasonParam, episodeParam, addonApis]);
 
   const isEpisodePath = !!(seasonParam && episodeParam);
 
