@@ -48,7 +48,7 @@ async function main() {
   console.log(`Fetching releases from legacy repo: ${LEGACY_REPO}...`);
   let legacyReleases = [];
   try {
-    const jsonStr = run(`gh release list --repo ${LEGACY_REPO} --limit 100 --json tagName,name,body`);
+    const jsonStr = run(`gh release list --repo ${LEGACY_REPO} --limit 100 --json tagName,name`);
     legacyReleases = JSON.parse(jsonStr);
   } catch (err) {
     console.error(`Error listing legacy releases: ${err.message}`);
@@ -94,8 +94,7 @@ async function main() {
       console.log(`Downloaded: ${apkFile} (${(fs.statSync(apkPath).size / 1024 / 1024).toFixed(2)} MB)`);
 
       console.log(`Creating release ${rel.tagName} in ${targetRepo}...`);
-      const escapedBody = rel.body ? rel.body.replace(/"/g, '\\"') : '';
-      run(`gh release create ${rel.tagName} "${apkPath}" --repo ${targetRepo} --title "${rel.name}" --notes "${escapedBody || 'Automated release migration.'}"`);
+      run(`gh release create ${rel.tagName} "${apkPath}" --repo ${targetRepo} --title "${rel.name}" --notes "Automated release migration."`);
       console.log(`✓ Successfully migrated ${rel.tagName}`);
     } catch (err) {
       console.error(`✗ Failed to migrate ${rel.tagName}: ${err.message}`);

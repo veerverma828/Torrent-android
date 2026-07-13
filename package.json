@@ -1,6 +1,7 @@
 {
   "name": "torrent-debrid-app-root",
   "version": "1.0.0",
+  "type": "module",
   "scripts": {
     "dev": "npm run --prefix frontend dev",
     "build": "npm run --prefix frontend build",
