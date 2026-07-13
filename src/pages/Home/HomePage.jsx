@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { View, StyleSheet } from "react-native";
 import { fetchAddonCatalogRails } from "../../services/addonCatalogs.js";
 import { useAppContext } from "../../context/AppContext.jsx";
 import { useSettingsContext } from "../../context/SettingsContext.jsx";
@@ -79,7 +80,7 @@ export default function HomePage() {
       {showCatalog && isBrowsing && <HeroBanner />}
 
       {showCatalog && (
-        <div className="content-section">
+        <View style={styles.contentSection}>
           {trimmedQuery === "" && continueWatchingList.length > 0 && (
             <MediaRail
               title="Continue Watching"
@@ -124,11 +125,11 @@ export default function HomePage() {
           {genreRails.map(({ genre, items }) => (
             <MediaRail key={genre} title={genre} items={items} keyPrefix={`genre-${genre}`} />
           ))}
-        </div>
+        </View>
       )}
 
       {(imdbMode || results.length > 0) && (
-        <div className="results-container">
+        <View style={styles.resultsContainer}>
           {results.map((item, index) => (
             <ResultCard
               key={`${item.infoHash || item.magnet || "no-hash"}-${item.title || "no-title"}-${index}`}
@@ -136,8 +137,20 @@ export default function HomePage() {
               index={index}
             />
           ))}
-        </div>
+        </View>
       )}
     </>
   );
 }
+
+const styles = StyleSheet.create({
+  contentSection: {
+    flexDirection: "column",
+    gap: 24,
+  },
+  resultsContainer: {
+    flexDirection: "column",
+    gap: 12,
+    padding: 12,
+  },
+});

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { View, Text, Image, ImageBackground, ScrollView, TouchableOpacity, StyleSheet } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
-import { motion, AnimatePresence } from "framer-motion";
-import { Star, Film, Cable, ChevronLeft, ChevronRight } from "lucide-react";
+import { Star, Film, Cable, ChevronLeft, ChevronRight } from "lucide-react-native";
 import { useAppContext } from "../../context/AppContext.jsx";
 import { useSettingsContext } from "../../context/SettingsContext.jsx";
 import { useStreamActions } from "../../hooks/useStreamActions.js";
@@ -11,7 +11,7 @@ import { fetchEpisodeRatings } from "../../services/episodeRatings.js";
 import Loader from "../../components/common/Loader.jsx";
 import ResultCard from "../../components/cards/ResultCard.jsx";
 import EpisodeCard from "../../components/cards/EpisodeCard.jsx";
-import "./SeriesPage.css";
+import { theme } from "../../styles/theme.js";
 
 // Entry stagger removed for speed — long episode lists took ~1s+ to reveal.
 
@@ -43,6 +43,9 @@ export default function SeriesPage() {
     canScrollRight,
     checkScroll,
     scrollSeasons,
+    handleScroll,
+    handleContentSizeChange,
+    handleLayout,
   } = useSeasonScroll();
 
   const [meta, setMeta] = useState(null);
@@ -152,14 +155,11 @@ export default function SeriesPage() {
         .then((streams) => {
           setResults(streams);
           setLoading(false);
-
-          // Scroll smoothly to the episode streams list
-          setTimeout(() => {
-            const el = document.querySelector(".selected-episode-streams");
-            if (el) {
-              el.scrollIntoView({ behavior: "smooth", block: "start" });
-            }
-          }, 300);
+          // Note: the old web build auto-scrolled the page to the newly
+          // revealed stream list via document.querySelector +
+          // scrollIntoView. There is no DOM here, and Layout's ScrollView
+          // doesn't currently expose a ref down to this screen, so that
+          // auto-scroll is intentionally dropped rather than faked.
         })
         .catch((e) => {
           console.error(e);
@@ -174,61 +174,67 @@ export default function SeriesPage() {
   const isEpisodePath = !!(seasonParam && episodeParam);
 
   return (
-    <div className="series-page-wrapper" style={{ padding: "0 10px" }}>
+    <View style={styles.wrapper}>
       {loading && <Loader />}
 
       {meta && (
-        <div
-          className="media-hero-section"
-          style={{
-            backgroundImage: `linear-gradient(to right, rgba(10, 10, 10, 0.95) 30%, rgba(10, 10, 10, 0.4) 100%), url(${meta.background || ""})`,
-          }}
+        <ImageBackground
+          source={meta.background ? { uri: meta.background } : undefined}
+          style={styles.heroSection}
+          imageStyle={styles.heroImage}
         >
-          <div className="media-hero-content">
-            <div className="media-hero-poster">
+          <View style={styles.heroOverlay} />
+          <View style={styles.heroContent}>
+            <View style={styles.posterWrap}>
               {meta.poster && !imageError ? (
-                <img
-                  src={meta.poster}
-                  alt={meta.name}
+                <Image
+                  source={{ uri: meta.poster }}
+                  style={styles.poster}
                   onError={() => setImageError(true)}
                 />
               ) : (
-                <div className="poster-placeholder-large">
-                  <Film size={48} />
-                </div>
+                <View style={styles.posterPlaceholder}>
+                  <Film size={48} color={theme.colors.textMuted} />
+                </View>
               )}
-            </div>
-            <div className="media-hero-info">
-              <h1>{meta.name}</h1>
-              <div className="media-meta-badges">
-                {meta.year && <span className="meta-badge">{meta.year}</span>}
+            </View>
+            <View style={styles.heroInfo}>
+              <Text style={styles.title}>{meta.name}</Text>
+              <View style={styles.badgeRow}>
+                {meta.year && (
+                  <View style={styles.badge}>
+                    <Text style={styles.badgeText}>{meta.year}</Text>
+                  </View>
+                )}
                 {meta.imdbRating && (
-                  <span className="meta-badge rating">
-                    <Star size={12} fill="currentColor" /> {meta.imdbRating}
-                  </span>
+                  <View style={[styles.badge, styles.ratingBadge]}>
+                    <Star size={12} color={theme.colors.warning} fill={theme.colors.warning} />
+                    <Text style={styles.badgeText}> {meta.imdbRating}</Text>
+                  </View>
                 )}
                 {meta.genres &&
                   meta.genres.map((g) => (
-                    <span key={g} className="meta-badge genre">
-                      {g}
-                    </span>
+                    <View key={g} style={[styles.badge, styles.genreBadge]}>
+                      <Text style={styles.badgeText}>{g}</Text>
+                    </View>
                   ))}
-              </div>
-              {meta.description && (
-                <p className="media-description">{meta.description}</p>
-              )}
-            </div>
-          </div>
-        </div>
+              </View>
+              {meta.description && <Text style={styles.description}>{meta.description}</Text>}
+            </View>
+          </View>
+        </ImageBackground>
       )}
 
       {/* SELECTED EPISODE STREAMING LIST */}
       {isEpisodePath && results.length > 0 && (
-        <div className="selected-episode-streams">
-          <h3>
-            <Cable size={16} className="inline -mt-1 mr-1" /> Available Streams for Season {seasonParam} Episode {episodeParam}
-          </h3>
-          <div className="results-container">
+        <View style={styles.selectedEpisodeStreams}>
+          <View style={styles.streamsTitleRow}>
+            <Cable size={16} color={theme.colors.text} />
+            <Text style={styles.streamsTitle}>
+              {" "}Available Streams for Season {seasonParam} Episode {episodeParam}
+            </Text>
+          </View>
+          <View style={styles.resultsContainer}>
             {results.map((item, index) => (
               <ResultCard
                 key={`${item.infoHash || item.magnet || "no-hash"}-${item.title || "no-title"}-${index}`}
@@ -236,103 +242,76 @@ export default function SeriesPage() {
                 index={index}
               />
             ))}
-          </div>
-        </div>
+          </View>
+        </View>
       )}
 
       {seasons.length > 0 && (
-        <div className="series-view-container">
+        <View style={styles.seriesViewContainer}>
           {/* SEASON BAR */}
-          <div className="season-bar-container">
+          <View style={styles.seasonBarContainer}>
             {canScrollLeft && (
-              <>
-                <div className="fade-left"></div>
-                <button
-                  className="scroll-arrow left"
-                  tabIndex="-1"
-                  onClick={() => scrollSeasons("left")}
-                >
-                  <ChevronLeft size={20} />
-                </button>
-              </>
+              <TouchableOpacity style={[styles.scrollArrow, styles.scrollArrowLeft]} onPress={() => scrollSeasons("left")}>
+                <ChevronLeft size={20} color={theme.colors.text} />
+              </TouchableOpacity>
             )}
 
-            <div className="season-bar" ref={seasonBarRef} onScroll={checkScroll}>
+            <ScrollView
+              horizontal
+              ref={seasonBarRef}
+              showsHorizontalScrollIndicator={false}
+              onScroll={handleScroll}
+              onContentSizeChange={handleContentSizeChange}
+              onLayout={handleLayout}
+              scrollEventThrottle={16}
+              style={styles.seasonBar}
+            >
               {seasons.map((s) => {
                 const isActive = Number(selectedSeason) === Number(s);
                 return (
-                  <div
+                  <TouchableOpacity
                     key={s}
-                    className={`season-tab ${isActive ? "active" : ""}`}
-                    onMouseEnter={() => {
+                    style={[styles.seasonTab, isActive && styles.seasonTabActive]}
+                    onPress={() => {
                       setSelectedSeason(s);
                       setResults([]);
-                    }}
-                    onClick={() => {
-                      setSelectedSeason(s);
-                      setResults([]);
-                    }}
-                    tabIndex="0"
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        setSelectedSeason(s);
-                        setResults([]);
-                      }
                     }}
                   >
-                    {isActive && (
-                      <motion.div
-                        className="season-tab-bg"
-                        layoutId="active-season-pill"
-                        transition={{ type: "spring", duration: 0.4, bounce: 0.2 }}
-                      />
-                    )}
-                    <span className="season-tab-label">
+                    <Text style={[styles.seasonTabLabel, isActive && styles.seasonTabLabelActive]}>
                       {Number(s) === 0 ? "Specials" : `Season ${s}`}
-                    </span>
-                  </div>
+                    </Text>
+                  </TouchableOpacity>
                 );
               })}
-            </div>
+            </ScrollView>
 
             {canScrollRight && (
-              <>
-                <div className="fade-right"></div>
-                <button
-                  className="scroll-arrow right"
-                  tabIndex="-1"
-                  onClick={() => scrollSeasons("right")}
-                >
-                  <ChevronRight size={20} />
-                </button>
-              </>
+              <TouchableOpacity style={[styles.scrollArrow, styles.scrollArrowRight]} onPress={() => scrollSeasons("right")}>
+                <ChevronRight size={20} color={theme.colors.text} />
+              </TouchableOpacity>
             )}
-          </div>
+          </View>
 
           {/* EPISODES GRID */}
           {selectedSeason !== null && selectedSeason !== undefined && (
-            <div
-              className="episodes-grid"
-              key={selectedSeason}
-              style={{ marginTop: "20px", width: "100%" }}
-            >
+            <View key={selectedSeason} style={styles.episodesGrid}>
               {visibleEpisodes.map((episode, i) => (
-                <div key={episode.id || `${episode.season}-${episode.episode}-${i}`}>
+                <View key={episode.id || `${episode.season}-${episode.episode}-${i}`} style={styles.episodeCardWrap}>
                   <EpisodeCard
                     episode={episode}
                     seriesId={id}
                     selectedItem={meta || selectedItem}
                     rating={episodeRatings[`${Number(episode.season)}:${Number(episode.episode)}`]}
                   />
-                </div>
+                </View>
               ))}
-            </div>
+            </View>
           )}
-        </div>
+        </View>
       )}
 
       {imdbMode && !isEpisodePath && results.length > 0 && (
-        <div className="results-container">
+        <View style={styles.resultsContainer}>
           {results.map((item, index) => (
             <ResultCard
               key={`${item.infoHash || item.magnet || "no-hash"}-${item.title || "no-title"}-${index}`}
@@ -340,8 +319,154 @@ export default function SeriesPage() {
               index={index}
             />
           ))}
-        </div>
+        </View>
       )}
-    </div>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  wrapper: {
+    paddingHorizontal: 10,
+  },
+  heroSection: {
+    borderRadius: 12,
+    overflow: "hidden",
+    marginBottom: 16,
+  },
+  heroImage: {
+    resizeMode: "cover",
+  },
+  heroOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(10,10,10,0.75)",
+  },
+  heroContent: {
+    flexDirection: "row",
+    padding: 20,
+    gap: 20,
+  },
+  posterWrap: {
+    width: 140,
+  },
+  poster: {
+    width: 140,
+    height: 210,
+    borderRadius: 8,
+  },
+  posterPlaceholder: {
+    width: 140,
+    height: 210,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: theme.colors.surfaceLight,
+  },
+  heroInfo: {
+    flex: 1,
+    justifyContent: "center",
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "700",
+    color: theme.colors.text,
+    marginBottom: 8,
+  },
+  badgeRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    marginBottom: 8,
+  },
+  badge: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    backgroundColor: "rgba(255,255,255,0.1)",
+  },
+  ratingBadge: {
+    backgroundColor: "rgba(255,193,7,0.15)",
+  },
+  genreBadge: {
+    backgroundColor: "rgba(255,255,255,0.06)",
+  },
+  badgeText: {
+    fontSize: 12,
+    color: theme.colors.text,
+  },
+  description: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: theme.colors.textMuted,
+  },
+  selectedEpisodeStreams: {
+    marginBottom: 16,
+  },
+  streamsTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  streamsTitle: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: theme.colors.text,
+  },
+  resultsContainer: {
+    gap: 12,
+  },
+  seriesViewContainer: {
+    marginTop: 8,
+  },
+  seasonBarContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  seasonBar: {
+    flexDirection: "row",
+  },
+  seasonTab: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    marginRight: 8,
+    borderRadius: 999,
+    backgroundColor: theme.colors.surface,
+  },
+  seasonTabActive: {
+    backgroundColor: theme.colors.accent,
+  },
+  seasonTabLabel: {
+    fontSize: 13,
+    fontWeight: "500",
+    color: theme.colors.textMuted,
+  },
+  seasonTabLabelActive: {
+    color: "#fff",
+  },
+  scrollArrow: {
+    width: 32,
+    height: 32,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 16,
+    backgroundColor: theme.colors.surface,
+  },
+  scrollArrowLeft: {
+    marginRight: 6,
+  },
+  scrollArrowRight: {
+    marginLeft: 6,
+  },
+  episodesGrid: {
+    marginTop: 20,
+    width: "100%",
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 12,
+  },
+  episodeCardWrap: {
+    minWidth: 260,
+  },
+});

@@ -2,6 +2,7 @@
  * Production-Grade Sync Telemetry and Monitoring
  * Tracks sync performance, errors, and user behavior analytics
  */
+import { AppState, Platform } from 'react-native';
 
 class SyncTelemetry {
   constructor() {
@@ -58,9 +59,12 @@ class SyncTelemetry {
     // Setup periodic reporting
     setInterval(() => this.reportMetrics(), 5 * 60 * 1000); // Every 5 minutes
     
-    // Report on page unload
-    window.addEventListener('beforeunload', () => this.reportMetrics(true));
-    
+    // Report when the app is backgrounded/closed (RN equivalent of the old
+    // web "beforeunload" flush-on-exit).
+    AppState.addEventListener('change', (nextState) => {
+      if (nextState === 'background' || nextState === 'inactive') this.reportMetrics(true);
+    });
+
     // Track device type
     this.trackDeviceType();
   }
@@ -183,14 +187,11 @@ class SyncTelemetry {
   }
 
   trackDeviceType() {
-    const userAgent = navigator.userAgent;
-    let deviceType = 'desktop';
-    
-    if (/Mobile|Android|iPhone|iPad/.test(userAgent)) {
-      deviceType = /iPad/.test(userAgent) ? 'tablet' : 'mobile';
-    }
-    
-    this.metrics.userBehavior.deviceTypes[deviceType] = 
+    // Always running as a native Android app now — no user-agent sniffing
+    // needed/possible.
+    const deviceType = Platform.isTV ? 'tv' : 'mobile';
+
+    this.metrics.userBehavior.deviceTypes[deviceType] =
       (this.metrics.userBehavior.deviceTypes[deviceType] || 0) + 1;
   }
 
@@ -348,7 +349,7 @@ class SyncTelemetry {
       currentSession: this.currentSession,
       metrics: this.metrics,
       health: this.getHealthStatus(),
-      userAgent: navigator.userAgent,
+      platform: Platform.OS,
       timestamp: Date.now()
     };
   }

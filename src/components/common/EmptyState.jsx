@@ -1,7 +1,19 @@
+import { View, Text, StyleSheet } from "react-native";
+
 export default function EmptyState({ message = "Nothing to show" }) {
   return (
-    <div className="center-margin-top">
-      <p style={{ color: "#888" }}>{message}</p>
-    </div>
+    <View style={styles.container}>
+      <Text style={styles.text}>{message}</Text>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    marginTop: 40,
+    alignItems: "center",
+  },
+  text: {
+    color: "#888",
+  },
+});

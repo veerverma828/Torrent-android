@@ -1,27 +1,22 @@
+import { Linking } from "react-native";
 import { isAndroid, isIOS } from "../utils/deviceHelpers.js";
 
 export function openExternalPlayer(url) {
   if (isAndroid()) {
     const urlObj = new URL(url);
-    window.location.href = `intent://${urlObj.host}${urlObj.pathname}${urlObj.search}#Intent;scheme=${urlObj.protocol.replace(":", "")};type=video/*;action=android.intent.action.VIEW;end`;
+    const intentUrl = `intent://${urlObj.host}${urlObj.pathname}${urlObj.search}#Intent;scheme=${urlObj.protocol.replace(":", "")};type=video/*;action=android.intent.action.VIEW;end`;
+    Linking.openURL(intentUrl);
   } else if (isIOS()) {
-    window.location.href = `vlc://${url}`;
+    Linking.openURL(`vlc://${url}`);
   } else {
-    const m3uContent = `#EXTM3U\n#EXTINF:-1, Stream\n${url}`;
-    const blob = new Blob([m3uContent], { type: "audio/x-mpegurl" });
-    const objectUrl = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = objectUrl;
-    a.download = "Play_Stream.m3u";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(objectUrl);
+    // No DOM/Blob download surface on native — fall back to just opening
+    // the stream URL directly (e.g. in an external browser/player).
+    Linking.openURL(url);
   }
 }
 
 export function openDirectDownload(url) {
-  window.open(url);
+  Linking.openURL(url);
 }
 
 export function createM3uDownload(url) {

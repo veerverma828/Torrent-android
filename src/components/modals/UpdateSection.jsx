@@ -1,18 +1,8 @@
-import { Download, Loader2, RefreshCw, CheckCircle2 } from "lucide-react";
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from "react-native";
+import { Download, RefreshCw, CheckCircle2 } from "lucide-react-native";
 import { isNativeApp, openInstallPermissionSettings } from "../../lib/apkUpdater.js";
 import { useUpdate } from "../../context/UpdateContext.jsx";
-
-const sectionCardStyle = {
-  background: "rgba(255,255,255,0.03)",
-  border: "1px solid rgba(255,255,255,0.08)",
-  borderRadius: "16px",
-  padding: "18px",
-};
-
-const btn =
-  "inline-flex items-center gap-1.5 rounded-lg bg-accent-primary px-3.5 py-2 text-[13px] font-semibold text-white hover:bg-accent-primary-hover transition-colors disabled:opacity-50";
-const btnGhost =
-  "inline-flex items-center gap-1.5 rounded-lg border border-border-default px-3.5 py-2 text-[13px] font-semibold text-text-primary hover:bg-bg-surface-hover transition-colors";
+import { theme } from "../../styles/theme.js";
 
 export default function UpdateSection() {
   const {
@@ -30,110 +20,191 @@ export default function UpdateSection() {
   } = useUpdate();
 
   return (
-    <div className="settings-section" style={sectionCardStyle}>
-      <h3 style={{ marginBottom: "16px" }}>App Updates</h3>
+    <View style={styles.card}>
+      <Text style={styles.heading}>App Updates</Text>
 
-      <div className="flex flex-col gap-3 text-[13px] text-text-secondary">
-        <div className="flex items-center justify-between">
-          <span>Installed build</span>
-          <span className="text-text-primary font-mono">
-            {currentBuild ? `#${currentBuild}` : "dev"}
-          </span>
-        </div>
+      <View style={styles.body}>
+        <View style={styles.row}>
+          <Text style={styles.rowLabel}>Installed build</Text>
+          <Text style={styles.rowValue}>{currentBuild ? `#${currentBuild}` : "dev"}</Text>
+        </View>
 
         {!isNativeApp && (
-          <p className="text-text-muted">
+          <Text style={styles.mutedText}>
             In-app updates are only available in the installed Android app.
-          </p>
+          </Text>
         )}
 
         {isNativeApp && !update && (
-          <div className="flex items-center justify-between">
-            <span className="inline-flex items-center gap-2">
+          <View style={styles.row}>
+            <View style={styles.inlineRow}>
               {checkError ? (
-                "Couldn't check (offline or rate-limited)."
+                <Text style={styles.rowLabel}>Couldn't check (offline or rate-limited).</Text>
               ) : checking ? (
                 <>
-                  <Loader2 className="h-4 w-4 animate-spin" /> Checking…
+                  <ActivityIndicator size="small" color={theme.colors.textMuted} />
+                  <Text style={styles.rowLabel}>Checking…</Text>
                 </>
               ) : (
                 <>
-                  <CheckCircle2 className="h-4 w-4 text-green-500" /> You're up to date.
+                  <CheckCircle2 size={16} color="#22c55e" />
+                  <Text style={styles.rowLabel}>You're up to date.</Text>
                 </>
               )}
-            </span>
-            <button className={btnGhost} onClick={checkForUpdate} disabled={checking}>
-              <RefreshCw className={`h-4 w-4 ${checking ? "animate-spin" : ""}`} /> Check
-            </button>
-          </div>
+            </View>
+            <TouchableOpacity style={styles.btnGhost} onPress={checkForUpdate} disabled={checking}>
+              <RefreshCw size={16} color={theme.colors.text} />
+              <Text style={styles.btnGhostText}>Check</Text>
+            </TouchableOpacity>
+          </View>
         )}
 
         {isNativeApp && update && (
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center justify-between">
-              <span className="text-text-primary">
-                Update available — build #{update.build}
-              </span>
-            </div>
+          <View style={{ gap: 12 }}>
+            <Text style={styles.rowValue}>Update available — build #{update.build}</Text>
 
             {phase === "idle" && (
-              <button className={btn} onClick={startDownload}>
-                <Download className="h-4 w-4" /> Download &amp; install
-              </button>
+              <TouchableOpacity style={styles.btn} onPress={startDownload}>
+                <Download size={16} color="#fff" />
+                <Text style={styles.btnText}>Download & install</Text>
+              </TouchableOpacity>
             )}
 
             {phase === "downloading" && (
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center justify-between">
-                  <span className="inline-flex items-center gap-2 text-text-primary">
-                    <Loader2 className="h-4 w-4 animate-spin" /> Downloading… {percent}%
-                  </span>
-                  <button className={btnGhost} onClick={cancelDownload}>
-                    Cancel
-                  </button>
-                </div>
-                <div className="h-1.5 w-full overflow-hidden rounded-full bg-bg-input">
-                  <div
-                    className="h-full rounded-full bg-accent-primary transition-[width] duration-200"
-                    style={{ width: `${percent}%` }}
-                  />
-                </div>
-              </div>
+              <View style={{ gap: 8 }}>
+                <View style={styles.row}>
+                  <View style={styles.inlineRow}>
+                    <ActivityIndicator size="small" color={theme.colors.text} />
+                    <Text style={styles.rowValue}>Downloading… {percent}%</Text>
+                  </View>
+                  <TouchableOpacity style={styles.btnGhost} onPress={cancelDownload}>
+                    <Text style={styles.btnGhostText}>Cancel</Text>
+                  </TouchableOpacity>
+                </View>
+                <View style={styles.progressTrack}>
+                  <View style={[styles.progressFill, { width: `${percent}%` }]} />
+                </View>
+              </View>
             )}
 
             {phase === "downloaded" && (
-              <button className={btn} onClick={attemptInstall}>
-                <Download className="h-4 w-4" /> Install now
-              </button>
+              <TouchableOpacity style={styles.btn} onPress={attemptInstall}>
+                <Download size={16} color="#fff" />
+                <Text style={styles.btnText}>Install now</Text>
+              </TouchableOpacity>
             )}
 
             {phase === "needs-permission" && (
-              <div className="flex flex-col gap-2">
-                <p className="text-text-secondary">
+              <View style={{ gap: 8 }}>
+                <Text style={styles.rowLabel}>
                   Allow Torrent Debrid to install apps, then tap Install again.
-                </p>
-                <div className="flex items-center gap-2">
-                  <button className={btn} onClick={openInstallPermissionSettings}>
-                    Open settings
-                  </button>
-                  <button className={btnGhost} onClick={attemptInstall}>
-                    Try again
-                  </button>
-                </div>
-              </div>
+                </Text>
+                <View style={styles.inlineRow}>
+                  <TouchableOpacity style={styles.btn} onPress={openInstallPermissionSettings}>
+                    <Text style={styles.btnText}>Open settings</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.btnGhost} onPress={attemptInstall}>
+                    <Text style={styles.btnGhostText}>Try again</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
             )}
 
             {phase === "error" && (
-              <div className="flex items-center justify-between">
-                <span className="text-accent-primary">{errorMessage}</span>
-                <button className={btnGhost} onClick={startDownload}>
-                  Retry
-                </button>
-              </div>
+              <View style={styles.row}>
+                <Text style={{ color: theme.colors.accent }}>{errorMessage}</Text>
+                <TouchableOpacity style={styles.btnGhost} onPress={startDownload}>
+                  <Text style={styles.btnGhostText}>Retry</Text>
+                </TouchableOpacity>
+              </View>
             )}
-          </div>
+          </View>
         )}
-      </div>
-    </div>
+      </View>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  card: {
+    backgroundColor: "rgba(255,255,255,0.03)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.08)",
+    borderRadius: 16,
+    padding: 18,
+  },
+  heading: {
+    marginBottom: 16,
+    fontSize: 16,
+    fontWeight: "600",
+    color: theme.colors.text,
+  },
+  body: {
+    gap: 12,
+  },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  inlineRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  rowLabel: {
+    fontSize: 13,
+    color: theme.colors.textMuted,
+  },
+  rowValue: {
+    fontSize: 13,
+    color: theme.colors.text,
+    fontFamily: "monospace",
+  },
+  mutedText: {
+    fontSize: 13,
+    color: theme.colors.textMuted,
+  },
+  btn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    borderRadius: 8,
+    backgroundColor: theme.colors.accent,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    alignSelf: "flex-start",
+  },
+  btnText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#fff",
+  },
+  btnGhost: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+  },
+  btnGhostText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: theme.colors.text,
+  },
+  progressTrack: {
+    height: 6,
+    width: "100%",
+    borderRadius: 3,
+    overflow: "hidden",
+    backgroundColor: theme.colors.surfaceLight,
+  },
+  progressFill: {
+    height: "100%",
+    borderRadius: 3,
+    backgroundColor: theme.colors.accent,
+  },
+});

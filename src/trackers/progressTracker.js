@@ -6,6 +6,7 @@
  * what happens *around* these writes (see progressService.js /
  * traktReconciliation.js), never how reads work.
  */
+import { DeviceEventEmitter } from "react-native";
 import { WATCH_COMPLETED_PERCENTAGE } from "../utils/constants.js";
 
 const STORAGE_KEY = 'watch_progress';
@@ -14,15 +15,8 @@ const STORAGE_KEY = 'watch_progress';
 let cachedStorage = null;
 let cacheTimer = null;
 
-// Another tab may write watch_progress directly — invalidate our cache so
-// the next read picks up the fresh value instead of a stale in-memory copy.
-if (typeof window !== "undefined") {
-  window.addEventListener("storage", (event) => {
-    if (event.key === STORAGE_KEY) {
-      cachedStorage = null;
-    }
-  });
-}
+// Native apps are single-process/single-window, so there's no cross-tab
+// "storage" event to listen for here (that was a web-only concern).
 
 export const getStorage = () => {
   if (cachedStorage) return cachedStorage;
@@ -61,9 +55,7 @@ const setStorage = (data) => {
     }
   }
 
-  if (typeof window !== "undefined") {
-    window.dispatchEvent(new CustomEvent("watch-progress-changed"));
-  }
+  DeviceEventEmitter.emit("watch-progress-changed");
 };
 
 export const getMovieProgress = (id) => {

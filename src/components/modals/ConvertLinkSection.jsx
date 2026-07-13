@@ -1,32 +1,10 @@
 import { useMemo, useState } from "react";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from "react-native";
+import Clipboard from "@react-native-clipboard/clipboard";
 import { useStreamActions } from "../../hooks/useStreamActions.js";
 import { useSettingsContext } from "../../context/SettingsContext.jsx";
 import { getFiles, generateLink } from "../../services/torrentService.js";
-
-const textareaStyle = {
-  width: "100%",
-  minHeight: "120px",
-  maxHeight: "260px",
-  resize: "vertical",
-  borderRadius: "14px",
-  padding: "14px",
-  border: "1px solid rgba(255,255,255,0.1)",
-  background: "rgba(255,255,255,0.04)",
-  color: "#fff",
-  outline: "none",
-  boxSizing: "border-box",
-  overflowY: "auto",
-  lineHeight: "1.5",
-};
-
-const actionButtonStyle = {
-  minWidth: "190px",
-  minHeight: "46px",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  flex: 1,
-};
+import { theme } from "../../styles/theme.js";
 
 export default function ConvertLinkSection() {
   const { initAction } = useStreamActions();
@@ -50,7 +28,7 @@ export default function ConvertLinkSection() {
 
   const handleCopyDownloadLink = async () => {
     if (!inputValue.trim()) {
-      alert("Please paste a magnet link.");
+      Alert.alert("Please paste a magnet link.");
       return;
     }
 
@@ -64,7 +42,7 @@ export default function ConvertLinkSection() {
       );
 
       if (!fileData?.files?.length) {
-        alert("No files found for this magnet link.");
+        Alert.alert("No files found for this magnet link.");
         return;
       }
 
@@ -76,15 +54,15 @@ export default function ConvertLinkSection() {
       );
 
       if (!generated?.downloadUrl) {
-        alert("Failed to generate download link.");
+        Alert.alert("Failed to generate download link.");
         return;
       }
 
-      await navigator.clipboard.writeText(generated.downloadUrl);
-      alert("Download link copied successfully.");
+      Clipboard.setString(generated.downloadUrl);
+      Alert.alert("Download link copied successfully.");
     } catch (error) {
       console.error(error);
-      alert("Failed to process magnet link.");
+      Alert.alert("Failed to process magnet link.");
     } finally {
       setCopyProcessing(false);
     }
@@ -92,7 +70,7 @@ export default function ConvertLinkSection() {
 
   const handleInternalStream = async () => {
     if (!inputValue.trim()) {
-      alert("Please paste a stream URL.");
+      Alert.alert("Please paste a stream URL.");
       return;
     }
 
@@ -102,7 +80,7 @@ export default function ConvertLinkSection() {
       await initAction(inputValue.trim(), "stream", true);
     } catch (error) {
       console.error(error);
-      alert("Failed to open stream.");
+      Alert.alert("Failed to open stream.");
     } finally {
       setStreamProcessing(false);
     }
@@ -110,7 +88,7 @@ export default function ConvertLinkSection() {
 
   const handleExternalStream = async () => {
     if (!inputValue.trim()) {
-      alert(isDirectUrl ? "Please paste a stream URL." : "Please paste a magnet link.");
+      Alert.alert(isDirectUrl ? "Please paste a stream URL." : "Please paste a magnet link.");
       return;
     }
 
@@ -119,101 +97,146 @@ export default function ConvertLinkSection() {
       await initAction(inputValue.trim(), "external", true);
     } catch (error) {
       console.error(error);
-      alert("Failed to process link.");
+      Alert.alert("Failed to process link.");
     } finally {
       setExternalProcessing(false);
     }
   };
 
   return (
-    <div
-      className="settings-section"
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: "16px",
-      }}
-    >
-      <div>
-        <h3 style={{ marginBottom: "8px" }}>
+    <View style={styles.section}>
+      <View>
+        <Text style={styles.heading}>
           {isDirectUrl ? "Direct Stream Link" : "Convert Magnet Link"}
-        </h3>
+        </Text>
 
-        <p
-          style={{
-            margin: 0,
-            opacity: 0.7,
-            fontSize: "14px",
-            lineHeight: "1.5",
-          }}
-        >
+        <Text style={styles.subtext}>
           {isDirectUrl
             ? "Stream direct media URLs instantly using the built-in player or external apps."
             : "Convert magnet links using your selected debrid provider."}
-        </p>
-      </div>
+        </Text>
+      </View>
 
-      <textarea
+      <TextInput
         value={inputValue}
-        onChange={(e) => setInputValue(e.target.value)}
+        onChangeText={setInputValue}
         placeholder={
           isDirectUrl
             ? "Paste direct stream URL here..."
             : "Paste magnet link here..."
         }
-        style={textareaStyle}
+        placeholderTextColor={theme.colors.textMuted}
+        multiline
+        style={styles.textarea}
       />
 
-      <div
-        style={{
-          display: "flex",
-          gap: "12px",
-          flexWrap: "wrap",
-          alignItems: "stretch",
-        }}
-      >
+      <View style={styles.buttonRow}>
         {isDirectUrl ? (
           <>
-            <button
-              className="settings-save-btn"
+            <TouchableOpacity
               disabled={streamProcessing}
-              onClick={handleInternalStream}
-              style={actionButtonStyle}
+              onPress={handleInternalStream}
+              style={[styles.actionButton, styles.primaryButton]}
             >
-              {streamProcessing ? "Opening Stream..." : "Stream"}
-            </button>
+              <Text style={styles.primaryButtonText}>
+                {streamProcessing ? "Opening Stream..." : "Stream"}
+              </Text>
+            </TouchableOpacity>
 
-            <button
-              className="settings-default-btn"
+            <TouchableOpacity
               disabled={externalProcessing}
-              onClick={handleExternalStream}
-              style={actionButtonStyle}
+              onPress={handleExternalStream}
+              style={[styles.actionButton, styles.secondaryButton]}
             >
-              {externalProcessing ? "Opening External..." : "Stream Externally"}
-            </button>
+              <Text style={styles.secondaryButtonText}>
+                {externalProcessing ? "Opening External..." : "Stream Externally"}
+              </Text>
+            </TouchableOpacity>
           </>
         ) : (
           <>
-            <button
-              className="settings-save-btn"
+            <TouchableOpacity
               disabled={copyProcessing}
-              onClick={handleCopyDownloadLink}
-              style={actionButtonStyle}
+              onPress={handleCopyDownloadLink}
+              style={[styles.actionButton, styles.primaryButton]}
             >
-              {copyProcessing ? "Processing Link..." : "Copy Download Link"}
-            </button>
+              <Text style={styles.primaryButtonText}>
+                {copyProcessing ? "Processing Link..." : "Copy Download Link"}
+              </Text>
+            </TouchableOpacity>
 
-            <button
-              className="settings-default-btn"
+            <TouchableOpacity
               disabled={externalProcessing}
-              onClick={handleExternalStream}
-              style={actionButtonStyle}
+              onPress={handleExternalStream}
+              style={[styles.actionButton, styles.secondaryButton]}
             >
-              {externalProcessing ? "Opening Stream..." : "Stream Externally"}
-            </button>
+              <Text style={styles.secondaryButtonText}>
+                {externalProcessing ? "Opening Stream..." : "Stream Externally"}
+              </Text>
+            </TouchableOpacity>
           </>
         )}
-      </div>
-    </div>
+      </View>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  section: {
+    flexDirection: "column",
+    gap: 16,
+  },
+  heading: {
+    marginBottom: 8,
+    fontSize: 16,
+    fontWeight: "600",
+    color: theme.colors.text,
+  },
+  subtext: {
+    opacity: 0.7,
+    fontSize: 14,
+    lineHeight: 20,
+    color: theme.colors.text,
+  },
+  textarea: {
+    width: "100%",
+    minHeight: 120,
+    maxHeight: 260,
+    borderRadius: 14,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.1)",
+    backgroundColor: "rgba(255,255,255,0.04)",
+    color: "#fff",
+    textAlignVertical: "top",
+  },
+  buttonRow: {
+    flexDirection: "row",
+    gap: 12,
+    flexWrap: "wrap",
+  },
+  actionButton: {
+    minWidth: 190,
+    minHeight: 46,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 10,
+    flex: 1,
+    paddingHorizontal: 12,
+  },
+  primaryButton: {
+    backgroundColor: theme.colors.accent,
+  },
+  primaryButtonText: {
+    color: "#fff",
+    fontWeight: "600",
+  },
+  secondaryButton: {
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  secondaryButtonText: {
+    color: theme.colors.text,
+    fontWeight: "600",
+  },
+});

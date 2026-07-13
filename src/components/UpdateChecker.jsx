@@ -1,6 +1,8 @@
-import { Download, X, Loader2 } from 'lucide-react'
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native'
+import { Download, X } from 'lucide-react-native'
 import { openInstallPermissionSettings } from '../lib/apkUpdater'
 import { useUpdate } from '../context/UpdateContext.jsx'
+import { theme } from '../styles/theme.js'
 
 export default function UpdateChecker() {
   const {
@@ -18,101 +20,146 @@ export default function UpdateChecker() {
   if (!update || dismissed) return null
 
   return (
-    <div className="fixed inset-x-0 bottom-4 z-50 px-4 pb-[env(safe-area-inset-bottom)] sm:px-6">
-      <div className="mx-auto max-w-md rounded-xl border border-border-strong bg-bg-surface/95 p-3 shadow-lg backdrop-blur">
+    <View style={styles.wrapper} pointerEvents="box-none">
+      <View style={styles.card}>
         {phase === 'idle' && (
-          <div className="flex items-center gap-3">
-            <Download className="h-5 w-5 shrink-0 text-accent-primary" />
-            <p className="flex-1 text-xs text-text-primary">A new version is available.</p>
-            <button
-              onClick={startDownload}
-              className="shrink-0 rounded-lg bg-accent-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-accent-primary-hover"
-            >
-              Update
-            </button>
-            <button onClick={dismiss} className="shrink-0 text-text-muted hover:text-text-primary" aria-label="Dismiss">
-              <X className="h-4 w-4" />
-            </button>
-          </div>
+          <View style={styles.row}>
+            <Download size={20} color={theme.colors.accent} />
+            <Text style={styles.text}>A new version is available.</Text>
+            <TouchableOpacity onPress={startDownload} style={styles.primaryBtn}>
+              <Text style={styles.primaryBtnText}>Update</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={dismiss} accessibilityLabel="Dismiss">
+              <X size={16} color={theme.colors.textMuted} />
+            </TouchableOpacity>
+          </View>
         )}
 
         {phase === 'downloading' && (
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center gap-3">
-              <Loader2 className="h-4 w-4 shrink-0 animate-spin text-accent-primary" />
-              <p className="flex-1 text-xs text-text-primary">Downloading update… {percent}%</p>
-              <button
-                onClick={cancelDownload}
-                className="shrink-0 text-xs font-medium text-text-muted hover:text-text-primary"
-              >
-                Cancel
-              </button>
-            </div>
-            <div className="h-1.5 w-full overflow-hidden rounded-full bg-bg-input">
-              <div
-                className="h-full rounded-full bg-accent-primary transition-[width] duration-200"
-                style={{ width: `${percent}%` }}
-              />
-            </div>
-          </div>
+          <View style={{ gap: 8 }}>
+            <View style={styles.row}>
+              <ActivityIndicator size="small" color={theme.colors.accent} />
+              <Text style={styles.text}>Downloading update… {percent}%</Text>
+              <TouchableOpacity onPress={cancelDownload}>
+                <Text style={styles.mutedBtnText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.progressTrack}>
+              <View style={[styles.progressFill, { width: `${percent}%` }]} />
+            </View>
+          </View>
         )}
 
         {phase === 'downloaded' && (
-          <div className="flex items-center gap-3">
-            <Download className="h-5 w-5 shrink-0 text-accent-primary" />
-            <p className="flex-1 text-xs text-text-primary">Update downloaded — ready to install.</p>
-            <button
-              onClick={attemptInstall}
-              className="shrink-0 rounded-lg bg-accent-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-accent-primary-hover"
-            >
-              Install
-            </button>
-            <button onClick={dismiss} className="shrink-0 text-xs font-medium text-text-muted hover:text-text-primary">
-              Cancel
-            </button>
-          </div>
+          <View style={styles.row}>
+            <Download size={20} color={theme.colors.accent} />
+            <Text style={styles.text}>Update downloaded — ready to install.</Text>
+            <TouchableOpacity onPress={attemptInstall} style={styles.primaryBtn}>
+              <Text style={styles.primaryBtnText}>Install</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={dismiss}>
+              <Text style={styles.mutedBtnText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
         )}
 
         {phase === 'needs-permission' && (
-          <div className="flex flex-col gap-2">
-            <p className="text-xs text-text-primary">
+          <View style={{ gap: 8 }}>
+            <Text style={styles.text}>
               Allow Torrent Debrid to install apps, then come back and tap Install again.
-            </p>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={openInstallPermissionSettings}
-                className="flex-1 rounded-lg bg-accent-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-accent-primary-hover"
-              >
-                Open settings
-              </button>
-              <button
-                onClick={attemptInstall}
-                className="rounded-lg border border-border-default px-3 py-1.5 text-xs font-medium text-text-primary"
-              >
-                Try again
-              </button>
-              <button onClick={dismiss} className="text-xs font-medium text-text-muted hover:text-text-primary">
-                Cancel
-              </button>
-            </div>
-          </div>
+            </Text>
+            <View style={styles.row}>
+              <TouchableOpacity onPress={openInstallPermissionSettings} style={[styles.primaryBtn, { flex: 1 }]}>
+                <Text style={styles.primaryBtnText}>Open settings</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={attemptInstall} style={styles.outlineBtn}>
+                <Text style={styles.text}>Try again</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={dismiss}>
+                <Text style={styles.mutedBtnText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         )}
 
         {phase === 'error' && (
-          <div className="flex items-center gap-3">
-            <p className="flex-1 text-xs text-accent-primary">{errorMessage}</p>
-            <button
-              onClick={startDownload}
-              className="shrink-0 rounded-lg border border-border-default px-3 py-1.5 text-xs font-medium text-text-primary"
-            >
-              Retry
-            </button>
-            <button onClick={dismiss} className="shrink-0 text-text-muted hover:text-text-primary" aria-label="Dismiss">
-              <X className="h-4 w-4" />
-            </button>
-          </div>
+          <View style={styles.row}>
+            <Text style={[styles.text, { color: theme.colors.accent, flex: 1 }]}>{errorMessage}</Text>
+            <TouchableOpacity onPress={startDownload} style={styles.outlineBtn}>
+              <Text style={styles.text}>Retry</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={dismiss}>
+              <X size={16} color={theme.colors.textMuted} />
+            </TouchableOpacity>
+          </View>
         )}
-      </div>
-    </div>
+      </View>
+    </View>
   )
 }
+
+const styles = StyleSheet.create({
+  wrapper: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 16,
+    paddingHorizontal: 16,
+    zIndex: 50,
+    alignItems: 'center',
+  },
+  card: {
+    width: '100%',
+    maxWidth: 420,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    backgroundColor: theme.colors.surface,
+    padding: 12,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  text: {
+    flex: 1,
+    fontSize: 12,
+    color: theme.colors.text,
+  },
+  mutedBtnText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: theme.colors.textMuted,
+  },
+  primaryBtn: {
+    borderRadius: 8,
+    backgroundColor: theme.colors.accent,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  primaryBtnText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#fff',
+  },
+  outlineBtn: {
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  progressTrack: {
+    height: 6,
+    width: '100%',
+    borderRadius: 3,
+    overflow: 'hidden',
+    backgroundColor: theme.colors.surfaceLight,
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 3,
+    backgroundColor: theme.colors.accent,
+  },
+})

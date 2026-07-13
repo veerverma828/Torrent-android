@@ -4,6 +4,7 @@
  * conflict resolution.
  */
 
+import { AppState } from "react-native";
 import { traktProvider } from "../../trackers/providers/traktProvider.js";
 import { syncHealthMonitor } from "../monitoring/syncHealthMonitor.js";
 import { syncTelemetry } from "../monitoring/syncTelemetry.js";
@@ -26,7 +27,10 @@ const CONCURRENT_OPERATIONS = 3; // Max concurrent sync operations
 
 class TraktSyncQueue {
   constructor() {
-    this.isOnline = navigator.onLine;
+    // No NetInfo dependency is installed, so we optimistically assume
+    // connectivity — failed requests still fall back to the retry/backoff
+    // path below regardless of this flag.
+    this.isOnline = true;
     this.isProcessing = false;
     this.activeOperations = new Set();
     this.syncTimeouts = new Map();
@@ -48,18 +52,10 @@ class TraktSyncQueue {
   }
 
   initializeEventListeners() {
-    window.addEventListener('online', () => {
-      this.isOnline = true;
-      this.processQueue();
-    });
-    
-    window.addEventListener('offline', () => {
-      this.isOnline = false;
-    });
-
-    // Process queue on page visibility change (user returns to tab)
-    document.addEventListener('visibilitychange', () => {
-      if (!document.hidden && this.isOnline) {
+    // Process queue when the app returns to the foreground (RN equivalent
+    // of the old page-visibility-change handler).
+    AppState.addEventListener('change', (nextState) => {
+      if (nextState === 'active' && this.isOnline) {
         this.processQueue();
       }
     });

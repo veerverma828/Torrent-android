@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
+import Clipboard from "@react-native-clipboard/clipboard";
 import { getCombinedLogs, clearAllLogs } from "../../services/logs.js";
 import { showToast } from "../common/Toast.jsx";
 
@@ -28,7 +30,7 @@ export default function LogsSection() {
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(logs);
+      Clipboard.setString(logs);
       showToast("Logs copied to clipboard", "success");
     } catch {
       showToast("Could not copy — try selecting the text manually");
@@ -42,48 +44,72 @@ export default function LogsSection() {
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-      <p style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", margin: 0 }}>
+    <View style={styles.container}>
+      <Text style={styles.helperText}>
         Records app errors and crashes, including ones that close the app before you can see
         what happened. Copy this and share it if something goes wrong.
-      </p>
+      </Text>
 
-      <textarea
-        readOnly
+      <TextInput
+        editable={false}
+        multiline
         value={logs}
-        style={{
-          width: "100%",
-          minHeight: 260,
-          maxHeight: "40vh",
-          resize: "vertical",
-          fontFamily: "monospace",
-          fontSize: 11,
-          lineHeight: 1.4,
-          background: "#0d0d0d",
-          color: "#ddd",
-          border: "1px solid #333",
-          borderRadius: 8,
-          padding: 10,
-          boxSizing: "border-box",
-        }}
+        style={styles.logBox}
       />
 
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-        <button type="button" className="addon-add-btn" style={{ margin: 0 }} onClick={handleCopy}>
-          Copy to Clipboard
-        </button>
-        <button type="button" className="addon-add-btn" style={{ margin: 0 }} onClick={refresh} disabled={loading}>
-          {loading ? "Refreshing…" : "Refresh"}
-        </button>
-        <button
-          type="button"
-          className="addon-add-btn"
-          style={{ margin: 0, color: "#ff6b6b" }}
-          onClick={handleClear}
-        >
-          Clear Logs
-        </button>
-      </div>
-    </div>
+      <View style={styles.buttonRow}>
+        <TouchableOpacity style={styles.button} onPress={handleCopy}>
+          <Text style={styles.buttonText}>Copy to Clipboard</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={refresh} disabled={loading}>
+          <Text style={styles.buttonText}>{loading ? "Refreshing…" : "Refresh"}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={handleClear}>
+          <Text style={[styles.buttonText, { color: "#ff6b6b" }]}>Clear Logs</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: "column",
+    gap: 12,
+  },
+  helperText: {
+    fontSize: 12,
+    color: "rgba(255,255,255,0.6)",
+  },
+  logBox: {
+    width: "100%",
+    minHeight: 260,
+    maxHeight: 320,
+    fontFamily: "monospace",
+    fontSize: 11,
+    lineHeight: 15,
+    backgroundColor: "#0d0d0d",
+    color: "#ddd",
+    borderWidth: 1,
+    borderColor: "#333",
+    borderRadius: 8,
+    padding: 10,
+    textAlignVertical: "top",
+  },
+  buttonRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+  },
+  button: {
+    backgroundColor: "rgba(255,255,255,0.06)",
+    borderRadius: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+  },
+  buttonText: {
+    color: "#fff",
+    fontSize: 13,
+    fontWeight: "500",
+  },
+});

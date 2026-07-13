@@ -1,9 +1,10 @@
 import { lazy, Suspense, useEffect, useState } from "react";
+import { View, ScrollView, TouchableOpacity, Text, StyleSheet } from "react-native";
 import { useRoute } from "@react-navigation/native";
 import { useAppContext } from "../context/AppContext.jsx";
 import { usePlayerContext } from "../context/PlayerContext.jsx";
 import { useSettingsContext } from "../context/SettingsContext.jsx";
-import { useKeyboardNavigation } from "../hooks/useKeyboardNavigation.js";
+import { useKeyboardNavigation, getDefaultFocusTarget } from "../hooks/useKeyboardNavigation.js";
 import { useHardwareBack } from "../hooks/useHardwareBack.js";
 import { useDebrid } from "../hooks/useDebrid.js";
 import SettingsButton from "../components/layout/SettingsButton.jsx";
@@ -11,9 +12,7 @@ import Header from "../components/layout/Header.jsx";
 import SearchBar from "../components/layout/SearchBar.jsx";
 import UpdateChecker from "../components/UpdateChecker.jsx";
 import Toast from "../components/common/Toast.jsx";
-import "../styles/globals.css";
-import "../styles/animations.css";
-import "../components/modals/SettingsModal.css";
+import { theme } from "../styles/theme.js";
 
 const VideoPlayer = lazy(() => import("../components/player/VideoPlayer.jsx"));
 const SettingsModal = lazy(() => import("../components/modals/SettingsModal.jsx"));
@@ -44,46 +43,32 @@ export default function Layout({ children }) {
     if (isSettingsOpen) setSettingsEverOpened(true);
   }, [isSettingsOpen]);
 
-  // Auto-focus newly loaded content for seamless keyboard navigation
+  // Auto-focus newly loaded content for seamless keyboard/d-pad navigation.
+  // On RN-TV there's no document.querySelector/activeElement — screens
+  // register their default-focusable item (first result card, first
+  // episode card, etc.) via registerFocusable() in useKeyboardNavigation.js,
+  // and we imperatively .focus() that ref once the relevant data arrives.
   useEffect(() => {
     let attempts = 0;
     let timeoutId;
 
+    const isEpisodeRoute = route.name === "Series" && routeParams.season != null && routeParams.episode != null;
+
     const tryFocus = () => {
-      const activeEl = document.activeElement;
-
-      if (activeEl && activeEl.tagName === "INPUT" && activeEl.type === "text") {
-        return;
-      }
-
-      let target = null;
-      let shouldScrollToTop = false;
-
-      const isEpisodeRoute = route.name === "Series" && routeParams.season != null && routeParams.episode != null;
+      let groups = [];
 
       if (fileModalData) {
-        target = document.querySelector(".file-item");
+        groups = ["file-item"];
       } else if (results.length > 0) {
-        target = document.querySelector(".result-btn");
-
-        // Only scroll to top for movie/general stream pages.
-        // Keep position while selecting episodes inside series.
-        shouldScrollToTop = !isEpisodeRoute;
+        groups = ["result-btn"];
       } else if (selectedSeason && episodes.length > 0) {
-        target = document.querySelector(".episode-card");
+        groups = ["episode-card"];
       }
 
-      if (target) {
-        if (shouldScrollToTop) {
-          window.scrollTo({
-            top: 0,
-            behavior: "auto",
-          });
-        }
+      const target = groups.length ? getDefaultFocusTarget(groups) : null;
 
-        requestAnimationFrame(() => {
-          target.focus({ preventScroll: true });
-        });
+      if (target && target.focus) {
+        target.focus();
       } else if (attempts < 5) {
         attempts++;
         timeoutId = setTimeout(tryFocus, 100);
@@ -100,47 +85,43 @@ export default function Layout({ children }) {
   // hardware back button closes them via useHardwareBack instead.
 
   return (
-    <div className="app-container min-h-screen bg-bg-base text-text-primary font-sans">
+    <View style={styles.appContainer}>
       <SettingsButton />
 
-      <Header />
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <Header />
 
-      {/* Debrid Service Selector — plain CSS sliding pill (no framer-motion,
-          which was otherwise the only reason this whole component tree
-          pulled the animation library into the eager main bundle). */}
-      <div className="options-container">
-        <div className="relative inline-flex rounded-full bg-bg-surface p-1 gap-0 text-xs">
-          <div
-            className="absolute inset-y-1 w-1/2 rounded-full bg-accent-primary transition-transform duration-300 ease-out -z-10"
-            style={{ transform: debridService === "torbox" ? "translateX(100%)" : "translateX(0)" }}
-          />
-          {[
-            { value: "real-debrid", label: "Real-Debrid" },
-            { value: "torbox", label: "Torbox" },
-          ].map((opt) => {
-            const isActive = debridService === opt.value;
-            return (
-              <button
-                key={opt.value}
-                type="button"
-                onClick={() => handleDebridChange(opt.value)}
-                className={`relative px-4 py-1.5 rounded-full font-medium transition-colors ${
-                  isActive ? "text-white" : "text-text-secondary hover:text-text-primary"
-                }`}
-              >
-                {opt.label}
-              </button>
-            );
-          })}
-        </div>
-      </div>
+        {/* Debrid Service Selector — plain sliding pill (no framer-motion). */}
+        <View style={styles.optionsContainer}>
+          <View style={styles.pillGroup}>
+            <View
+              style={[
+                styles.pillIndicator,
+                { transform: [{ translateX: debridService === "torbox" ? PILL_WIDTH : 0 }] },
+              ]}
+            />
+            {[
+              { value: "real-debrid", label: "Real-Debrid" },
+              { value: "torbox", label: "Torbox" },
+            ].map((opt) => {
+              const isActive = debridService === opt.value;
+              return (
+                <TouchableOpacity
+                  key={opt.value}
+                  onPress={() => handleDebridChange(opt.value)}
+                  style={styles.pillOption}
+                >
+                  <Text style={[styles.pillLabel, isActive && styles.pillLabelActive]}>{opt.label}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
 
-      <SearchBar />
+        <SearchBar />
 
-      {/* No route transition animation: mode="wait" forced an exit fade +
-          enter fade in sequence, adding ~250ms of dead time to every
-          navigation. Instant swap feels dramatically faster on TV. */}
-      {children}
+        {children}
+      </ScrollView>
 
       {playerEverOpened && (
         <Suspense fallback={null}>
@@ -156,6 +137,51 @@ export default function Layout({ children }) {
 
       <UpdateChecker />
       <Toast />
-    </div>
+    </View>
   );
 }
+
+const PILL_WIDTH = 90;
+
+const styles = StyleSheet.create({
+  appContainer: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+  },
+  scrollContent: {
+    flexGrow: 1,
+  },
+  optionsContainer: {
+    alignItems: "center",
+    marginTop: 12,
+  },
+  pillGroup: {
+    flexDirection: "row",
+    borderRadius: 999,
+    backgroundColor: theme.colors.surface,
+    padding: 4,
+  },
+  pillIndicator: {
+    position: "absolute",
+    top: 4,
+    bottom: 4,
+    left: 4,
+    width: PILL_WIDTH,
+    borderRadius: 999,
+    backgroundColor: theme.colors.accent,
+  },
+  pillOption: {
+    width: PILL_WIDTH,
+    paddingVertical: 6,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  pillLabel: {
+    fontSize: 12,
+    fontWeight: "500",
+    color: theme.colors.textMuted,
+  },
+  pillLabelActive: {
+    color: "#fff",
+  },
+});

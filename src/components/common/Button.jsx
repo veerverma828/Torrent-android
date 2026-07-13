@@ -1,20 +1,23 @@
+import { TouchableOpacity, Text } from "react-native";
+
 export default function Button({
   children,
+  onPress,
   onClick,
   disabled = false,
-  className = "",
   style = {},
+  textStyle = {},
   title = "",
 }) {
   return (
-    <button
-      className={className}
-      onClick={onClick}
+    <TouchableOpacity
+      onPress={onPress || onClick}
       disabled={disabled}
       style={style}
-      title={title}
+      accessibilityLabel={title}
+      accessibilityRole="button"
     >
-      {children}
-    </button>
+      {typeof children === "string" ? <Text style={textStyle}>{children}</Text> : children}
+    </TouchableOpacity>
   );
 }

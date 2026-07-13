@@ -9,20 +9,13 @@ export function useSyncStatus() {
       setSyncStatus(traktSyncQueue.getSyncStatus());
     };
 
-    // Update status every 5 seconds
+    // Update status every 5 seconds. There's no NetInfo dependency
+    // installed for real online/offline events, so polling is the RN
+    // equivalent here.
     const interval = setInterval(updateStatus, 5000);
-
-    // Listen for network events
-    const handleOnline = () => setTimeout(updateStatus, 100);
-    const handleOffline = updateStatus;
-
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
 
     return () => {
       clearInterval(interval);
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
     };
   }, []);
 

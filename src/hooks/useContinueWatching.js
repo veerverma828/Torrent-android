@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { DeviceEventEmitter } from "react-native";
 import { progressService } from "../trackers/progressService.js";
 
 export function useContinueWatching() {
@@ -26,11 +27,11 @@ export function useContinueWatching() {
     // progressTracker dispatches this on every local write, whether it came
     // from this tab's own playback or a background Trakt reconciliation —
     // so a mounted Continue Watching list always reflects the latest state.
-    window.addEventListener("watch-progress-changed", loadContinueWatching);
+    const sub = DeviceEventEmitter.addListener("watch-progress-changed", loadContinueWatching);
 
     return () => {
       active = false;
-      window.removeEventListener("watch-progress-changed", loadContinueWatching);
+      sub.remove();
     };
   }, []);
 

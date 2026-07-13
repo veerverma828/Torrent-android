@@ -5,6 +5,7 @@
  * local-to-Trakt push. UI code never calls Trakt directly; this is the only
  * thing that writes remote data into progressTracker.
  */
+import { AppState } from "react-native";
 import { traktProvider, mapPlaybackItemToLocal, mapHistoryItemToLocal } from "../../trackers/providers/traktProvider.js";
 import { mergeRemoteMovieProgress, mergeRemoteEpisodeProgress } from "../../trackers/progressTracker.js";
 import { isTraktSyncEnabled } from "../../utils/syncMode.js";
@@ -15,6 +16,7 @@ const INTERVAL_MS = 3 * 60 * 1000;
 
 let intervalId = null;
 let visibilityHandler = null;
+let appStateSubscription = null;
 let lastReconcileAt = 0;
 
 function applyMapped(mapped) {
@@ -84,15 +86,15 @@ export const traktReconciliation = {
   startAutoReconcile() {
     this.stopAutoReconcile();
 
-    visibilityHandler = () => {
-      if (document.hidden) return;
+    visibilityHandler = (nextState) => {
+      if (nextState !== "active") return;
       if (Date.now() - lastReconcileAt < FOCUS_THROTTLE_MS) return;
       this.reconcileNow({ trigger: "focus" });
     };
-    document.addEventListener("visibilitychange", visibilityHandler);
+    appStateSubscription = AppState.addEventListener("change", visibilityHandler);
 
     intervalId = setInterval(() => {
-      if (document.visibilityState !== "visible") return;
+      if (AppState.currentState !== "active") return;
       this.reconcileNow({ trigger: "interval" });
     }, INTERVAL_MS);
   },
@@ -102,8 +104,9 @@ export const traktReconciliation = {
       clearInterval(intervalId);
       intervalId = null;
     }
-    if (visibilityHandler) {
-      document.removeEventListener("visibilitychange", visibilityHandler);
+    if (appStateSubscription) {
+      appStateSubscription.remove();
+      appStateSubscription = null;
       visibilityHandler = null;
     }
   },

@@ -34,7 +34,7 @@ jobs:
 
       - name: Calculate build number
         id: build_number
-        run: echo "build=$(( ${{ github.run_number }} + 100 ))" >> "$GITHUB_OUTPUT"
+        run: echo "build=$(( ${{ github.run_number }} + 43 ))" >> "$GITHUB_OUTPUT"
 
       - name: Install dependencies
         run: npm ci
