@@ -1,0 +1,13 @@
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/dist-apk/
+frontend/android/local.properties
+frontend/android/app/release.jks
+frontend/android/release.jks
+frontend/android/.gradle/
+frontend/android/build/
+frontend/android/app/build/
+.vscode/
+.idea/
+*.log

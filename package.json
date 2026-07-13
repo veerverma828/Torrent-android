@@ -1,0 +1,10 @@
+{
+  "name": "torrent-debrid-app-root",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "npm run --prefix frontend dev",
+    "build": "npm run --prefix frontend build",
+    "cap:sync": "npm run --prefix frontend cap sync android",
+    "cap:open": "npm run --prefix frontend cap open android"
+  }
+}
