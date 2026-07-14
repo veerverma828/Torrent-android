@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { View, Text, StyleSheet, ScrollView, TextInput, Pressable, Image, ActivityIndicator } from "react-native";
-import { Search, X, Settings, ArrowRight } from "lucide-react-native";
+import { Search, X, ArrowRight } from "lucide-react-native";
 import { useAppContext } from "../context/AppContext.jsx";
 import { useSettingsContext } from "../context/SettingsContext.jsx";
 import { useContinueWatching } from "../hooks/useContinueWatching.js";
@@ -40,16 +40,10 @@ export default function HomeScreen() {
     imdbMode, 
     useJackett, 
     addonApis, 
-    setIsSettingsOpen, 
-    setTempAddonApis, 
-    setSettingsTab, 
     debridService, 
     setDebridService,
-    realDebridApiKey,
-    torboxApiKey
   } = useSettingsContext();
 
-  const { update } = useUpdate();
   const { continueWatchingList, removeFromContinueWatching } = useContinueWatching();
   const { searchContent, searchTorrents } = useSearch();
   
@@ -72,7 +66,6 @@ export default function HomeScreen() {
   useEffect(() => {
     if (selectedItem !== null) {
       setSelectedItem(null);
-      const debridKey = debridService === "real-debrid" ? realDebridApiKey : torboxApiKey;
       if (!useJackett && !imdbMode) setResults([]);
     }
 
@@ -104,32 +97,13 @@ export default function HomeScreen() {
   const runSearch = useJackett || imdbMode ? searchTorrents : searchContent;
   const hasQuery = query.trim().length > 0;
 
-  const handleOpenSettings = () => {
-    setTempAddonApis([...addonApis]);
-    if (update) setSettingsTab?.("update");
-    setIsSettingsOpen(true);
-  };
-
   return (
     <View style={styles.screen}>
       {loading && <Loader />}
 
-      {/* Top Header Bar */}
+      {/* Top Header Bar — no Settings button; settings are in the More tab */}
       <View style={styles.header}>
         <Image source={logoImg} style={styles.logo} resizeMode="contain" />
-        
-        {/* Settings button next to logo */}
-        <Pressable
-          focusable={true}
-          onPress={handleOpenSettings}
-          style={({ focused }) => [
-            styles.settingsBtn,
-            focused && styles.settingsBtnFocused
-          ]}
-        >
-          <Settings size={22} color={update ? theme.colors.accent : theme.colors.textMuted} />
-          {update && <View style={styles.updateBadge} />}
-        </Pressable>
       </View>
 
       {/* Search Input Container */}
@@ -275,7 +249,7 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: theme.spacing.lg,
     paddingTop: theme.spacing.md,
@@ -284,31 +258,6 @@ const styles = StyleSheet.create({
   logo: {
     width: 200,
     height: 40,
-  },
-  settingsBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
-    position: "relative",
-  },
-  settingsBtnFocused: {
-    borderColor: theme.colors.accent,
-    borderWidth: 2,
-    backgroundColor: "rgba(229, 9, 20, 0.1)",
-  },
-  updateBadge: {
-    position: "absolute",
-    top: 4,
-    right: 4,
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: theme.colors.accent,
-    borderWidth: 1,
-    borderColor: theme.colors.background,
   },
   searchContainer: {
     flexDirection: "row",
