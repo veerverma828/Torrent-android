@@ -48,7 +48,7 @@ export default function SettingsButton() {
 const styles = StyleSheet.create({
   button: {
     position: "absolute",
-    top: 16,
+    bottom: 16,
     right: 16,
     zIndex: 50,
     width: 48,

@@ -1,16 +1,10 @@
 package com.veerverma.torrent;
 
-import android.content.ContentValues;
 import android.content.Context;
-import android.net.Uri;
-import android.os.Build;
-import android.os.Environment;
-import android.provider.MediaStore;
 import android.util.Log;
 
 import java.io.File;
 import java.io.FileWriter;
-import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.text.SimpleDateFormat;
@@ -68,11 +62,6 @@ public class AppLogger {
                 // background executor gets to drain, and the whole point of
                 // this logger is surviving the crash that follows it.
                 writeSync("E", "CRASH", "Uncaught exception on thread " + thread.getName(), throwable);
-                // App-private storage (getFilesDir()) isn't reachable without adb/root,
-                // which defeats the point of this logger when the app crashes before
-                // Settings > Logs can be opened. Also drop a copy in the public
-                // Downloads folder so it can be grabbed with any file manager.
-                dumpToDownloads();
             } catch (Throwable ignored) {
                 // Never let logging itself block the crash from surfacing.
             }
@@ -140,35 +129,6 @@ public class AppLogger {
             return new String(bytes, java.nio.charset.StandardCharsets.UTF_8);
         } catch (Throwable e) {
             return "(failed to read log file: " + e.getMessage() + ")";
-        }
-    }
-
-    /** Best-effort copy of the full log into Downloads/torrent-debrid-crash.txt,
-     *  so a crash-before-Settings-is-reachable can still be read without adb. */
-    private static synchronized void dumpToDownloads() {
-        if (appContext == null) return;
-        try {
-            String content = readAll();
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                ContentValues values = new ContentValues();
-                values.put(MediaStore.MediaColumns.DISPLAY_NAME, "torrent-debrid-crash.txt");
-                values.put(MediaStore.MediaColumns.MIME_TYPE, "text/plain");
-                values.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS);
-                Uri uri = appContext.getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values);
-                if (uri != null) {
-                    try (OutputStream out = appContext.getContentResolver().openOutputStream(uri)) {
-                        if (out != null) out.write(content.getBytes(java.nio.charset.StandardCharsets.UTF_8));
-                    }
-                }
-            } else {
-                File downloads = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-                File out = new File(downloads, "torrent-debrid-crash.txt");
-                try (FileWriter fw = new FileWriter(out, false)) {
-                    fw.write(content);
-                }
-            }
-        } catch (Throwable ignored) {
-            // Best-effort only -- must never throw from a crash handler.
         }
     }
 
