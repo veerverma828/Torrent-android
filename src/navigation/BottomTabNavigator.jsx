@@ -2,6 +2,7 @@ import React from "react";
 import { View, StyleSheet, Platform } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { getFocusedRouteNameFromRoute } from "@react-navigation/native";
 import { Home, Search, MoreHorizontal } from "lucide-react-native";
 
 import HomeScreen from "../screens/HomeScreen.jsx";
@@ -11,7 +12,7 @@ import MoreScreen from "../screens/MoreScreen.jsx";
 import { theme } from "../styles/theme.js";
 
 const Tab = createBottomTabNavigator();
-const HomeStack = createNativeStackNavigator();
+const Stack = createNativeStackNavigator();
 
 /**
  * Stack navigator for the Home tab — allows pushing detail screens
@@ -20,17 +21,17 @@ const HomeStack = createNativeStackNavigator();
  */
 function HomeStackNavigator() {
   return (
-    <HomeStack.Navigator
+    <Stack.Navigator
       screenOptions={{
         headerShown: false,
         contentStyle: { backgroundColor: theme.colors.background },
         animation: "fade_from_bottom",
       }}
     >
-      <HomeStack.Screen name="HomeMain" component={HomeScreen} />
-      <HomeStack.Screen name="Movie" component={MovieDetailScreen} />
-      <HomeStack.Screen name="Series" component={SeriesDetailScreen} />
-    </HomeStack.Navigator>
+      <Stack.Screen name="HomeMain" component={HomeScreen} />
+      <Stack.Screen name="Movie" component={MovieDetailScreen} />
+      <Stack.Screen name="Series" component={SeriesDetailScreen} />
+    </Stack.Navigator>
   );
 }
 
@@ -40,18 +41,31 @@ function HomeStackNavigator() {
  */
 function SearchStackNavigator() {
   return (
-    <HomeStack.Navigator
+    <Stack.Navigator
       screenOptions={{
         headerShown: false,
         contentStyle: { backgroundColor: theme.colors.background },
         animation: "fade_from_bottom",
       }}
     >
-      <HomeStack.Screen name="SearchMain" component={HomeScreen} />
-      <HomeStack.Screen name="Movie" component={MovieDetailScreen} />
-      <HomeStack.Screen name="Series" component={SeriesDetailScreen} />
-    </HomeStack.Navigator>
+      <Stack.Screen name="SearchMain" component={HomeScreen} />
+      <Stack.Screen name="Movie" component={MovieDetailScreen} />
+      <Stack.Screen name="Series" component={SeriesDetailScreen} />
+    </Stack.Navigator>
   );
+}
+
+/**
+ * Hide the tab bar when a nested stack screen is a detail screen
+ * (Movie or Series), so the user gets a full-screen experience.
+ */
+function getTabBarVisibility(route) {
+  const routeName = getFocusedRouteNameFromRoute(route);
+  // If we're on a detail screen inside the nested stack, hide the tab bar
+  if (routeName === "Movie" || routeName === "Series") {
+    return "none";
+  }
+  return "flex";
 }
 
 export default function BottomTabNavigator() {
@@ -69,18 +83,28 @@ export default function BottomTabNavigator() {
       <Tab.Screen
         name="HomeTab"
         component={HomeStackNavigator}
-        options={{
+        options={({ route }) => ({
           tabBarLabel: "Home",
           tabBarIcon: ({ color, size }) => <Home size={size} color={color} />,
-        }}
+          tabBarStyle: (route => {
+            const base = styles.tabBar;
+            const display = getTabBarVisibility(route);
+            return { ...base, display };
+          })(route),
+        })}
       />
       <Tab.Screen
         name="SearchTab"
         component={SearchStackNavigator}
-        options={{
+        options={({ route }) => ({
           tabBarLabel: "Search",
           tabBarIcon: ({ color, size }) => <Search size={size} color={color} />,
-        }}
+          tabBarStyle: (route => {
+            const base = styles.tabBar;
+            const display = getTabBarVisibility(route);
+            return { ...base, display };
+          })(route),
+        })}
       />
       <Tab.Screen
         name="MoreTab"
