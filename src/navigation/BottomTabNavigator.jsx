@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, Platform } from "react-native";
+import { StyleSheet, Platform, View } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { getFocusedRouteNameFromRoute } from "@react-navigation/native";
@@ -66,7 +66,11 @@ export default function BottomTabNavigator() {
         component={HomeStackNavigator}
         options={({ route }) => ({
           tabBarLabel: "Home",
-          tabBarIcon: ({ color, size }) => <Home size={size} color={color} />,
+          tabBarIcon: ({ color, size, focused }) => (
+            <View style={[styles.iconWrapper, focused && styles.iconWrapperActive]}>
+              <Home size={20} color={focused ? theme.colors.accent : theme.colors.textMuted} />
+            </View>
+          ),
           tabBarStyle: (route => {
             const base = styles.tabBar;
             const display = getTabBarVisibility(route);
@@ -79,7 +83,11 @@ export default function BottomTabNavigator() {
         component={SourcesScreen}
         options={{
           tabBarLabel: "Sources",
-          tabBarIcon: ({ color, size }) => <Globe size={size} color={color} />,
+          tabBarIcon: ({ color, size, focused }) => (
+            <View style={[styles.iconWrapper, focused && styles.iconWrapperActive]}>
+              <Globe size={20} color={focused ? theme.colors.accent : theme.colors.textMuted} />
+            </View>
+          ),
         }}
       />
       <Tab.Screen
@@ -87,7 +95,11 @@ export default function BottomTabNavigator() {
         component={DebridScreen}
         options={{
           tabBarLabel: "Debrid",
-          tabBarIcon: ({ color, size }) => <Cloud size={size} color={color} />,
+          tabBarIcon: ({ color, size, focused }) => (
+            <View style={[styles.iconWrapper, focused && styles.iconWrapperActive]}>
+              <Cloud size={20} color={focused ? theme.colors.accent : theme.colors.textMuted} />
+            </View>
+          ),
         }}
       />
       <Tab.Screen
@@ -95,7 +107,11 @@ export default function BottomTabNavigator() {
         component={MoreStackNavigator}
         options={({ route }) => ({
           tabBarLabel: "More",
-          tabBarIcon: ({ color, size }) => <MoreHorizontal size={size} color={color} />,
+          tabBarIcon: ({ color, size, focused }) => (
+            <View style={[styles.iconWrapper, focused && styles.iconWrapperActive]}>
+              <MoreHorizontal size={20} color={focused ? theme.colors.accent : theme.colors.textMuted} />
+            </View>
+          ),
           tabBarStyle: (route => {
             const base = styles.tabBar;
             const routeName = getFocusedRouteNameFromRoute(route) ?? "MoreDirectory";
@@ -112,15 +128,28 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.surface,
     borderTopColor: theme.colors.border,
     borderTopWidth: 1,
-    height: Platform.OS === "android" ? 60 : 85,
-    paddingBottom: Platform.OS === "android" ? 8 : 20,
-    paddingTop: 6,
+    height: Platform.OS === "android" ? 70 : 90,
+    paddingBottom: Platform.OS === "android" ? 10 : 25,
+    paddingTop: 8,
   },
   tabLabel: {
-    fontSize: 11,
-    fontWeight: "600",
+    fontSize: 10,
+    fontWeight: "700",
+    marginTop: 4,
   },
   tabItem: {
-    paddingVertical: 4,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  iconWrapper: {
+    width: 50,
+    height: 28,
+    borderRadius: 14,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "transparent",
+  },
+  iconWrapperActive: {
+    backgroundColor: "rgba(229, 9, 20, 0.12)",
   },
 });

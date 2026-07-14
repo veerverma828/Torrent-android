@@ -41,8 +41,6 @@ export default function HomeScreen() {
     imdbMode, 
     useJackett, 
     addonApis, 
-    debridService, 
-    setDebridService,
   } = useSettingsContext();
 
   const { continueWatchingList, removeFromContinueWatching } = useContinueWatching();
@@ -145,35 +143,7 @@ export default function HomeScreen() {
         </Pressable>
       </View>
 
-      {/* Debrid Selector Pill on Home Screen */}
-      {showCatalog && (
-        <View style={styles.debridSelector}>
-          <Pressable
-            focusable={true}
-            onPress={() => setDebridService("real-debrid")}
-            style={[
-              styles.debridTab,
-              debridService === "real-debrid" && styles.debridTabActive
-            ]}
-          >
-            <Text style={[styles.debridTabText, debridService === "real-debrid" && styles.debridTabTextActive]}>
-              Real-Debrid
-            </Text>
-          </Pressable>
-          <Pressable
-            focusable={true}
-            onPress={() => setDebridService("torbox")}
-            style={[
-              styles.debridTab,
-              debridService === "torbox" && styles.debridTabActive
-            ]}
-          >
-            <Text style={[styles.debridTabText, debridService === "torbox" && styles.debridTabTextActive]}>
-              Torbox
-            </Text>
-          </Pressable>
-        </View>
-      )}
+
 
       {/* Main Scroll Content */}
       <ScrollView contentContainerStyle={styles.scrollContent} style={styles.scrollView}>
@@ -324,32 +294,7 @@ const styles = StyleSheet.create({
   btnPressed: {
     opacity: 0.8,
   },
-  debridSelector: {
-    flexDirection: "row",
-    alignSelf: "center",
-    backgroundColor: theme.colors.surface,
-    padding: 3,
-    borderRadius: 20,
-    gap: 2,
-    marginVertical: theme.spacing.xs,
-  },
-  debridTab: {
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-    borderRadius: 18,
-    backgroundColor: "transparent",
-  },
-  debridTabActive: {
-    backgroundColor: theme.colors.accent,
-  },
-  debridTabText: {
-    color: theme.colors.textMuted,
-    fontSize: 11,
-    fontWeight: "600",
-  },
-  debridTabTextActive: {
-    color: "#ffffff",
-  },
+
   scrollView: {
     flex: 1,
   },
