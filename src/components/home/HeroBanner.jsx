@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { View, Text, StyleSheet, ImageBackground, Pressable, Dimensions } from "react-native";
-import { Play, Info, Star, ChevronLeft, ChevronRight } from "lucide-react-native";
+import { View, Text, StyleSheet, ImageBackground, Pressable, Dimensions, PanResponder } from "react-native";
+import { Play, Info, Star } from "lucide-react-native";
 import { useAppContext } from "../../context/AppContext.jsx";
 import { useNavigate } from "../../hooks/useNavigate.js";
 import { theme } from "../../styles/theme.js";
@@ -45,6 +45,19 @@ export default function HeroBanner() {
     return () => clearInterval(timerRef.current);
   }, [count, index]);
 
+  // Swipe left/right to change slides (replaces the old chevron buttons).
+  // Recreated each render (cheap) so it always closes over the current
+  // goNext/goPrev — a useRef-memoized version would go stale after render 1.
+  const SWIPE_THRESHOLD = 40;
+  const panResponder = PanResponder.create({
+    onMoveShouldSetPanResponder: (_evt, gesture) =>
+      Math.abs(gesture.dx) > 10 && Math.abs(gesture.dx) > Math.abs(gesture.dy),
+    onPanResponderRelease: (_evt, gesture) => {
+      if (gesture.dx <= -SWIPE_THRESHOLD) goNext();
+      else if (gesture.dx >= SWIPE_THRESHOLD) goPrev();
+    },
+  });
+
   if (moviesLoading && seriesLoading) {
     return <View style={[styles.banner, styles.skeleton]} />;
   }
@@ -56,7 +69,7 @@ export default function HeroBanner() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} {...panResponder.panHandlers}>
       <ImageBackground
         source={{ uri: hero.background }}
         style={styles.banner}
@@ -127,24 +140,6 @@ export default function HeroBanner() {
 
       {count > 1 && (
         <>
-          {/* Left Arrow */}
-          <Pressable 
-            focusable={true}
-            onPress={goPrev} 
-            style={({ focused }) => [styles.navBtn, styles.navBtnLeft, focused && styles.navBtnFocused]}
-          >
-            <ChevronLeft size={20} color="#ffffff" />
-          </Pressable>
-          
-          {/* Right Arrow */}
-          <Pressable 
-            focusable={true}
-            onPress={goNext} 
-            style={({ focused }) => [styles.navBtn, styles.navBtnRight, focused && styles.navBtnFocused]}
-          >
-            <ChevronRight size={20} color="#ffffff" />
-          </Pressable>
-
           {/* Dots Indicator */}
           <View style={styles.dotsContainer}>
             {candidates.map((_, i) => (
@@ -279,26 +274,6 @@ const styles = StyleSheet.create({
   },
   btnPressed: {
     opacity: 0.8,
-  },
-  navBtn: {
-    position: "absolute",
-    top: "40%",
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    alignItems: "center",
-    justifyContent: "center",
-    zIndex: 10,
-  },
-  navBtnFocused: {
-    backgroundColor: theme.colors.accent,
-  },
-  navBtnLeft: {
-    left: theme.spacing.sm,
-  },
-  navBtnRight: {
-    right: theme.spacing.sm,
   },
   dotsContainer: {
     position: "absolute",

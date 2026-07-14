@@ -13,7 +13,7 @@ export function useStreamActions() {
   const navigation = useNavigation();
 
   const { setResults } = useAppContext();
-  const { debridService, realDebridApiKey, torboxApiKey, playbackSource, setIsSettingsOpen, setSettingsTab } =
+  const { debridService, realDebridApiKey, torboxApiKey, playbackSource } =
     useSettingsContext();
   const debridKey = debridService === "real-debrid" ? realDebridApiKey : torboxApiKey;
 
@@ -23,8 +23,7 @@ export function useStreamActions() {
   function requireDebridKey() {
     if (debridKey) return true;
     showToast("Add your debrid API key in Settings to stream");
-    setSettingsTab("debrid");
-    setIsSettingsOpen(true);
+    navigation.navigate("DebridTab");
     return false;
   }
   const {
@@ -51,12 +50,10 @@ export function useStreamActions() {
         if (fileModalData) setFileModalData(null);
 
         if (action === "download") {
-          if (fileModalData && navigation.canGoBack()) navigation.goBack();
           Linking.openURL(data.downloadUrl);
         } else if (action === "stream") {
           setStreamUrl(data.downloadUrl);
         } else if (action === "external") {
-          if (fileModalData && navigation.canGoBack()) navigation.goBack();
           openExternalPlayer(data.downloadUrl);
         }
       } else {

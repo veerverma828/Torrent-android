@@ -1,4 +1,4 @@
-export const API_URL = "http://localhost:5000";
+export const API_URL = "https://torrent-backend-aki7.onrender.com";
 
 export const CINEMETA_BASE = "https://v3-cinemeta.strem.io";
 

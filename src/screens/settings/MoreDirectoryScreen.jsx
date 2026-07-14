@@ -1,92 +1,67 @@
 import React from "react";
 import { View, Text, StyleSheet, ScrollView, Pressable } from "react-native";
-import { Settings, RefreshCw, HardDrive, Star, Info, Shield, ChevronRight } from "lucide-react-native";
-import { useSettingsContext } from "../context/SettingsContext.jsx";
-import { useUpdate } from "../context/UpdateContext.jsx";
-import { theme } from "../styles/theme.js";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Activity, Link2, Download, SlidersHorizontal, FileText, ChevronRight } from "lucide-react-native";
+import { useUpdate } from "../../context/UpdateContext.jsx";
+import { theme } from "../../styles/theme.js";
 
-export default function MoreScreen() {
-  const { setIsSettingsOpen, setTempAddonApis, addonApis, setSettingsTab } = useSettingsContext();
+export default function MoreDirectoryScreen({ navigation }) {
   const { update } = useUpdate();
-
-  const handleOpenSettings = (tab) => {
-    setTempAddonApis([...addonApis]);
-    if (tab) setSettingsTab(tab);
-    setIsSettingsOpen(true);
-  };
+  const insets = useSafeAreaInsets();
 
   const menuItems = [
     {
-      icon: Settings,
-      label: "Customization",
-      description: "Addons, Debrid, Trakt, and app preferences",
-      tab: "addons",
-      badge: update,
-    },
-    {
-      icon: HardDrive,
-      label: "Debrid Services",
-      description: "Real-Debrid & Torbox API configuration",
-      tab: "debrid",
-    },
-    {
-      icon: Star,
+      icon: Activity,
       label: "Trakt Integration",
       description: "Sync watched progress with your Trakt account",
-      tab: "trakt",
+      route: "Trakt",
     },
     {
-      icon: RefreshCw,
+      icon: Link2,
+      label: "Direct Stream & Converter",
+      description: "Stream URLs or convert magnet links",
+      route: "DirectStream",
+    },
+    {
+      icon: Download,
       label: "Updates",
       description: "Check for and install app updates",
-      tab: "update",
+      route: "Update",
       badge: update,
     },
     {
-      icon: Shield,
-      label: "Direct Stream & Converter",
-      description: "Stream URLs or convert magnet links",
-      tab: "direct",
+      icon: SlidersHorizontal,
+      label: "Preferences",
+      description: "Jackett, IMDb mode, auto search",
+      route: "Preferences",
     },
     {
-      icon: Info,
+      icon: FileText,
       label: "Diagnostics & Logs",
       description: "View app logs for troubleshooting",
-      tab: "logs",
+      route: "Logs",
     },
   ];
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.container}>
-      {/* Section Header */}
+    <ScrollView style={styles.screen} contentContainerStyle={[styles.container, { paddingTop: insets.top + theme.spacing.lg }]}>
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>More</Text>
-        <Text style={styles.sectionSubtitle}>Settings, customization, and tools</Text>
+        <Text style={styles.sectionSubtitle}>Sync, tools, and app preferences</Text>
       </View>
 
-      {/* Menu Items */}
       <View style={styles.menuContainer}>
         {menuItems.map((item) => {
           const IconComponent = item.icon;
           return (
             <Pressable
-              key={item.tab}
+              key={item.route}
               focusable={true}
-              onPress={() => handleOpenSettings(item.tab)}
-              style={({ focused }) => [
-                styles.menuItem,
-                focused && styles.menuItemFocused,
-              ]}
+              onPress={() => navigation.navigate(item.route)}
+              style={({ focused }) => [styles.menuItem, focused && styles.menuItemFocused]}
             >
               <View style={styles.menuIconContainer}>
-                <IconComponent
-                  size={22}
-                  color={
-                    item.badge
-                      ? theme.colors.accent
-                      : theme.colors.textMuted
-                  }
-                />
+                <IconComponent size={22} color={item.badge ? theme.colors.accent : theme.colors.textMuted} />
               </View>
               <View style={styles.menuTextContainer}>
                 <Text style={styles.menuLabel}>{item.label}</Text>

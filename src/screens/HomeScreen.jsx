@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { View, Text, StyleSheet, ScrollView, TextInput, Pressable, Image, ActivityIndicator } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Search, X, ArrowRight } from "lucide-react-native";
 import { useAppContext } from "../context/AppContext.jsx";
 import { useSettingsContext } from "../context/SettingsContext.jsx";
@@ -96,13 +97,14 @@ export default function HomeScreen() {
 
   const runSearch = useJackett || imdbMode ? searchTorrents : searchContent;
   const hasQuery = query.trim().length > 0;
+  const insets = useSafeAreaInsets();
 
   return (
     <View style={styles.screen}>
       {loading && <Loader />}
 
-      {/* Top Header Bar — no Settings button; settings are in the More tab */}
-      <View style={styles.header}>
+      {/* Top Header Bar */}
+      <View style={[styles.header, { paddingTop: insets.top + theme.spacing.md }]}>
         <Image source={logoImg} style={styles.logo} resizeMode="contain" />
       </View>
 

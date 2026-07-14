@@ -1,5 +1,6 @@
 package com.veerverma.torrent;
 
+import android.app.Activity;
 import android.content.Intent;
 import com.facebook.react.bridge.*;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
@@ -26,6 +27,25 @@ public class NativePlayerModule extends ReactContextBaseJavaModule {
             m.getReactApplicationContext()
                 .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
                 .emit(event, data);
+        }
+    }
+
+    /**
+     * Launches PlayerActivity from the current foreground Activity so it joins
+     * the app's existing task/back-stack — pressing back then simply returns
+     * to whichever JS screen was showing, the normal Android back behavior.
+     * Falls back to the (rarer) Application-context + NEW_TASK path only if no
+     * Activity is currently attached, since starting an Activity from a
+     * non-Activity Context requires that flag.
+     */
+    private void startPlayerIntent(Intent intent) {
+        Activity activity = getReactApplicationContext().getCurrentActivity();
+        if (activity != null) {
+            intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            activity.startActivity(intent);
+        } else {
+            intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+            getReactApplicationContext().startActivity(intent);
         }
     }
 
@@ -93,8 +113,7 @@ public class NativePlayerModule extends ReactContextBaseJavaModule {
         intent.putExtra(PlayerActivity.EXTRA_START_PERCENT, startPercent);
         intent.putExtra(PlayerActivity.EXTRA_METADATA, metadataJson);
         intent.putExtra(PlayerActivity.EXTRA_HAS_NEXT, hasNext);
-        intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-        getReactApplicationContext().startActivity(intent);
+        startPlayerIntent(intent);
 
         promise.resolve(null);
     }
@@ -109,7 +128,6 @@ public class NativePlayerModule extends ReactContextBaseJavaModule {
         intent.putExtra(PlayerActivity.EXTRA_START_PERCENT, startPercent);
         intent.putExtra(PlayerActivity.EXTRA_METADATA, metadataJson);
         intent.putExtra(PlayerActivity.EXTRA_HAS_NEXT, hasNext);
-        intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-        getReactApplicationContext().startActivity(intent);
+        startPlayerIntent(intent);
     }
 }

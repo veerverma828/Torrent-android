@@ -74,6 +74,23 @@ export function SettingsProvider({ children }) {
     return storageService.get("syncMode") || "local";
   });
 
+  const [jackettHost, setJackettHostState] = useState(() => {
+    return storageService.get("jackettHost") || "";
+  });
+  const [jackettApiKey, setJackettApiKeyState] = useState(() => {
+    return storageService.get("jackettApiKey") || "";
+  });
+
+  const setJackettHost = useCallback((host) => {
+    storageService.set("jackettHost", host);
+    setJackettHostState(host);
+  }, []);
+
+  const setJackettApiKey = useCallback((key) => {
+    storageService.set("jackettApiKey", key);
+    setJackettApiKeyState(key);
+  }, []);
+
   const [traktAuthenticated, setTraktAuthenticated] = useState(() => {
     return traktAuth.isAuthenticated();
   });
@@ -86,6 +103,18 @@ export function SettingsProvider({ children }) {
     storageService.set("syncMode", mode);
     setSyncMode(mode);
   }, []);
+
+  // Persists any addon-URL edits still pending in tempAddonApis when the
+  // modal closes, so typing a URL and dismissing without hitting the
+  // explicit "Save" button doesn't silently discard it.
+  const saveSettings = useCallback(() => {
+    setAddonApis((current) => {
+      const cleaned = tempAddonApis.map((url) => url.trim()).filter(Boolean);
+      if (cleaned.length === 0) return current;
+      storageService.set("addonApis", cleaned);
+      return cleaned;
+    });
+  }, [tempAddonApis]);
 
   const value = useMemo(
     () => ({
@@ -121,6 +150,11 @@ export function SettingsProvider({ children }) {
       setTraktAuthenticated,
       traktUser,
       setTraktUser,
+      jackettHost,
+      setJackettHost,
+      jackettApiKey,
+      setJackettApiKey,
+      saveSettings,
     }),
     [
       isSettingsOpen,
@@ -143,6 +177,9 @@ export function SettingsProvider({ children }) {
       updateSyncMode,
       traktAuthenticated,
       traktUser,
+      jackettHost,
+      jackettApiKey,
+      saveSettings,
     ]
   );
 

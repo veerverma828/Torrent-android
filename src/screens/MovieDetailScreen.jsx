@@ -1,12 +1,15 @@
 import React, { useEffect, useRef, useState } from "react";
 import { View, Text, StyleSheet, ScrollView, Image, ImageBackground, Pressable } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Star, Film, Cable, ChevronLeft } from "lucide-react-native";
 import { useAppContext } from "../context/AppContext.jsx";
 import { useSettingsContext } from "../context/SettingsContext.jsx";
 import { useStreamActions } from "../hooks/useStreamActions.js";
+import { useHardwareBack } from "../hooks/useHardwareBack.js";
 import { fetchMovieStreams, fetchMeta } from "../services/cinemeta.js";
 import Loader from "../components/common/Loader.jsx";
 import ResultCard from "../components/cards/ResultCard.jsx";
+import VideoPlayer from "../components/player/VideoPlayer.jsx";
 import { theme } from "../styles/theme.js";
 
 export default function MovieDetailScreen({ route, navigation }) {
@@ -14,6 +17,7 @@ export default function MovieDetailScreen({ route, navigation }) {
   const { setSelectedItem, setResults, setLoading, loading, results } = useAppContext();
   const { addonApis, debridService, realDebridApiKey, torboxApiKey } = useSettingsContext();
   const { initAction } = useStreamActions();
+  useHardwareBack();
 
   const [meta, setMeta] = useState(null);
   const [imageError, setImageError] = useState(false);
@@ -53,16 +57,19 @@ export default function MovieDetailScreen({ route, navigation }) {
       });
   }, [id, addonApis]);
 
+  const insets = useSafeAreaInsets();
+
   return (
     <View style={styles.screen}>
       {loading && <Loader />}
 
       {/* Floating Back Button */}
-      <Pressable 
+      <Pressable
         focusable={true}
-        onPress={() => navigation.goBack()} 
+        onPress={() => navigation.goBack()}
         style={({ focused }) => [
           styles.backBtn,
+          { top: insets.top + theme.spacing.sm },
           focused && styles.backBtnFocused
         ]}
       >
@@ -147,6 +154,7 @@ export default function MovieDetailScreen({ route, navigation }) {
           )}
         </View>
       </ScrollView>
+      <VideoPlayer />
     </View>
   );
 }
@@ -190,8 +198,7 @@ const styles = StyleSheet.create({
   heroContent: {
     flexDirection: "row",
     gap: theme.spacing.lg,
-    alignItems: "flex-end",
-    marginTop: 40,
+    alignItems: "flex-start",
   },
   posterContainer: {
     width: 100,

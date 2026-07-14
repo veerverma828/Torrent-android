@@ -1,15 +1,32 @@
-import React, { memo } from "react";
+import React, { memo, useCallback } from "react";
 import { View, Text, StyleSheet, FlatList } from "react-native";
 import PosterCard from "../cards/PosterCard.jsx";
 import { theme } from "../../styles/theme.js";
 
-const MediaRail = memo(function MediaRail({ title, items, type, keyPrefix, renderItem }) {
-  if (!items?.length) return null;
+// Card width (120) + horizontal margin (theme.spacing.sm * 2) from PosterCard's
+// styles — lets FlatList skip its own measurement pass per item.
+const CARD_WIDTH = 120 + theme.spacing.sm * 2;
 
-  const renderSingleItem = ({ item, index }) => {
-    if (renderItem) return renderItem(item);
-    return <PosterCard item={item} type={type} />;
-  };
+const MediaRail = memo(function MediaRail({ title, items, type, keyPrefix, renderItem }) {
+  const renderSingleItem = useCallback(
+    ({ item }) => {
+      if (renderItem) return renderItem(item);
+      return <PosterCard item={item} type={type} />;
+    },
+    [renderItem, type]
+  );
+
+  const keyExtractor = useCallback(
+    (item, index) => `${keyPrefix || title}-${item.type || type}-${item.id || item.seriesId || index}`,
+    [keyPrefix, title, type]
+  );
+
+  const getItemLayout = useCallback(
+    (_data, index) => ({ length: CARD_WIDTH, offset: CARD_WIDTH * index, index }),
+    []
+  );
+
+  if (!items?.length) return null;
 
   return (
     <View style={styles.container}>
@@ -18,10 +35,9 @@ const MediaRail = memo(function MediaRail({ title, items, type, keyPrefix, rende
         horizontal
         showsHorizontalScrollIndicator={false}
         data={items}
-        keyExtractor={(item, index) => 
-          `${keyPrefix || title}-${item.type || type}-${item.id || item.seriesId || index}`
-        }
+        keyExtractor={keyExtractor}
         renderItem={renderSingleItem}
+        getItemLayout={getItemLayout}
         contentContainerStyle={styles.listContent}
       />
     </View>

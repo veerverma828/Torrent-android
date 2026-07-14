@@ -1,14 +1,16 @@
 import React from "react";
-import { View, StyleSheet, Platform } from "react-native";
+import { StyleSheet, Platform } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { getFocusedRouteNameFromRoute } from "@react-navigation/native";
-import { Home, Search, MoreHorizontal } from "lucide-react-native";
+import { Home, Globe, Cloud, MoreHorizontal } from "lucide-react-native";
 
 import HomeScreen from "../screens/HomeScreen.jsx";
 import MovieDetailScreen from "../screens/MovieDetailScreen.jsx";
 import SeriesDetailScreen from "../screens/SeriesDetailScreen.jsx";
-import MoreScreen from "../screens/MoreScreen.jsx";
+import SourcesScreen from "../screens/settings/SourcesScreen.jsx";
+import DebridScreen from "../screens/settings/DebridScreen.jsx";
+import MoreStackNavigator from "./MoreStackNavigator.jsx";
 import { theme } from "../styles/theme.js";
 
 const Tab = createBottomTabNavigator();
@@ -36,32 +38,11 @@ function HomeStackNavigator() {
 }
 
 /**
- * The Search tab re-uses HomeScreen (which includes the search bar
- * at the top). The user can search directly from here.
- */
-function SearchStackNavigator() {
-  return (
-    <Stack.Navigator
-      screenOptions={{
-        headerShown: false,
-        contentStyle: { backgroundColor: theme.colors.background },
-        animation: "fade_from_bottom",
-      }}
-    >
-      <Stack.Screen name="SearchMain" component={HomeScreen} />
-      <Stack.Screen name="Movie" component={MovieDetailScreen} />
-      <Stack.Screen name="Series" component={SeriesDetailScreen} />
-    </Stack.Navigator>
-  );
-}
-
-/**
  * Hide the tab bar when a nested stack screen is a detail screen
  * (Movie or Series), so the user gets a full-screen experience.
  */
 function getTabBarVisibility(route) {
   const routeName = getFocusedRouteNameFromRoute(route);
-  // If we're on a detail screen inside the nested stack, hide the tab bar
   if (routeName === "Movie" || routeName === "Series") {
     return "none";
   }
@@ -94,27 +75,33 @@ export default function BottomTabNavigator() {
         })}
       />
       <Tab.Screen
-        name="SearchTab"
-        component={SearchStackNavigator}
-        options={({ route }) => ({
-          tabBarLabel: "Search",
-          tabBarIcon: ({ color, size }) => <Search size={size} color={color} />,
-          tabBarStyle: (route => {
-            const base = styles.tabBar;
-            const display = getTabBarVisibility(route);
-            return { ...base, display };
-          })(route),
-        })}
+        name="SourcesTab"
+        component={SourcesScreen}
+        options={{
+          tabBarLabel: "Sources",
+          tabBarIcon: ({ color, size }) => <Globe size={size} color={color} />,
+        }}
+      />
+      <Tab.Screen
+        name="DebridTab"
+        component={DebridScreen}
+        options={{
+          tabBarLabel: "Debrid",
+          tabBarIcon: ({ color, size }) => <Cloud size={size} color={color} />,
+        }}
       />
       <Tab.Screen
         name="MoreTab"
-        component={MoreScreen}
-        options={{
+        component={MoreStackNavigator}
+        options={({ route }) => ({
           tabBarLabel: "More",
-          tabBarIcon: ({ color, size }) => (
-            <MoreHorizontal size={size} color={color} />
-          ),
-        }}
+          tabBarIcon: ({ color, size }) => <MoreHorizontal size={size} color={color} />,
+          tabBarStyle: (route => {
+            const base = styles.tabBar;
+            const routeName = getFocusedRouteNameFromRoute(route) ?? "MoreDirectory";
+            return { ...base, display: routeName === "MoreDirectory" ? "flex" : "none" };
+          })(route),
+        })}
       />
     </Tab.Navigator>
   );

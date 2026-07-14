@@ -1,5 +1,6 @@
 import { useSettingsContext } from "../context/SettingsContext.jsx";
 import { showToast } from "../components/common/Toast.jsx";
+import { navigate } from "../navigation/navigationRef.js";
 
 export function useDebrid() {
   const {
@@ -7,8 +8,6 @@ export function useDebrid() {
     setDebridService,
     realDebridApiKey,
     torboxApiKey,
-    setIsSettingsOpen,
-    setSettingsTab,
   } = useSettingsContext();
 
   // A service is usable only once the user has saved their own API key.
@@ -18,8 +17,7 @@ export function useDebrid() {
       setDebridService(service);
     } else {
       showToast(`Add your ${service === "real-debrid" ? "Real-Debrid" : "Torbox"} API key first`);
-      setSettingsTab("debrid");
-      setIsSettingsOpen(true);
+      navigate("DebridTab");
     }
   }
 

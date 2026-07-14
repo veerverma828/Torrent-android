@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from "react";
-import { useNavigation, useRoute } from "@react-navigation/native";
+import { useRoute } from "@react-navigation/native";
 import { useMediaContext } from "../../context/AppContext.jsx";
 import { useSettingsContext } from "../../context/SettingsContext.jsx";
 import { usePlayerContext } from "../../context/PlayerContext.jsx";
@@ -35,7 +35,6 @@ function seriesSubtitle(meta) {
 }
 
 export default function VideoPlayer() {
-  const navigation = useNavigation();
   const route = useRoute();
   const { selectedItem, episodes = [], seasons = [] } = useMediaContext();
   const { addonApis, debridService, realDebridApiKey, torboxApiKey } = useSettingsContext();
@@ -192,8 +191,12 @@ export default function VideoPlayer() {
     unsubs.push(onNativePlayerEvent("closed", () => {
       if (disposed) return;
       disposed = true;
+      // The native PlayerActivity already consumed the back-press (or the
+      // video simply ended) and has finished, returning focus to whichever
+      // JS screen was already showing beneath it. Just clear the stream
+      // state — an extra goBack() here pops that already-correct screen,
+      // sending the user one level further back than intended.
       setStreamUrl(null);
-      if (navigation.canGoBack()) navigation.goBack();
     }));
     // P2P resolve progress is now shown inside PlayerActivity itself (native
     // loading overlay), not as a web toast — torrentStatus is no longer

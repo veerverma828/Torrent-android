@@ -1,0 +1,245 @@
+import { StyleSheet } from "react-native";
+import { theme } from "../../styles/theme.js";
+
+/** Shared styles across all Settings section screens (Sources, Debrid, Trakt, etc). */
+export const settingsStyles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+  },
+  header: {
+    paddingHorizontal: theme.spacing.lg,
+    paddingTop: theme.spacing.lg,
+    paddingBottom: theme.spacing.sm,
+  },
+  headerTitle: {
+    color: theme.colors.text,
+    fontSize: 24,
+    fontWeight: "700",
+  },
+  contentPanel: {
+    flex: 1,
+  },
+  panelScroll: {
+    padding: theme.spacing.lg,
+    paddingBottom: 60,
+  },
+  tabContent: {
+    flex: 1,
+  },
+  tabHeading: {
+    color: theme.colors.text,
+    fontSize: 16,
+    fontWeight: "bold",
+    marginBottom: theme.spacing.xs,
+  },
+  tabDesc: {
+    color: theme.colors.textMuted,
+    fontSize: 12,
+    lineHeight: 18,
+    marginBottom: theme.spacing.md,
+  },
+  addonRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: theme.spacing.sm,
+    gap: theme.spacing.sm,
+  },
+  addonInput: {
+    flex: 1,
+    backgroundColor: theme.colors.surface,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    borderRadius: 8,
+    paddingHorizontal: theme.spacing.md,
+    color: theme.colors.text,
+    fontSize: 12,
+    height: 40,
+  },
+  addonRemoveBtn: {
+    padding: 8,
+  },
+  addonActionRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: theme.spacing.sm,
+    marginTop: theme.spacing.md,
+  },
+  actionBtnGhost: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 4,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+    borderRadius: 8,
+  },
+  actionBtnAccent: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 4,
+    backgroundColor: theme.colors.accent,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+    borderRadius: 8,
+  },
+  btnText: {
+    color: "#ffffff",
+    fontSize: 12,
+    fontWeight: "bold",
+  },
+  selectorRow: {
+    flexDirection: "row",
+    gap: theme.spacing.sm,
+    marginBottom: theme.spacing.lg,
+  },
+  selectorPill: {
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.sm,
+    borderRadius: 20,
+    backgroundColor: theme.colors.surface,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  selectorPillActive: {
+    backgroundColor: theme.colors.accent,
+    borderColor: theme.colors.accent,
+  },
+  inputGroup: {
+    marginBottom: theme.spacing.md,
+  },
+  inputLabel: {
+    color: theme.colors.text,
+    fontSize: 12,
+    fontWeight: "600",
+    marginBottom: theme.spacing.xs,
+  },
+  inputField: {
+    backgroundColor: theme.colors.surface,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    borderRadius: 8,
+    paddingHorizontal: theme.spacing.md,
+    color: theme.colors.text,
+    fontSize: 12,
+    height: 40,
+  },
+  textArea: {
+    backgroundColor: theme.colors.surface,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    borderRadius: 8,
+    padding: theme.spacing.md,
+    color: theme.colors.text,
+    fontSize: 12,
+    height: 100,
+    textAlignVertical: "top",
+  },
+  switchRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: theme.spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border,
+  },
+  switchTextCol: {
+    flex: 1,
+    paddingRight: theme.spacing.md,
+  },
+  switchLabel: {
+    color: theme.colors.text,
+    fontSize: 13,
+    fontWeight: "bold",
+  },
+  switchDesc: {
+    color: theme.colors.textMuted,
+    fontSize: 11,
+  },
+  jackettForm: {
+    paddingLeft: theme.spacing.md,
+    borderLeftWidth: 2,
+    borderLeftColor: theme.colors.border,
+    marginVertical: theme.spacing.sm,
+  },
+  logTextArea: {
+    backgroundColor: theme.colors.surface,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    borderRadius: 8,
+    padding: theme.spacing.md,
+    color: theme.colors.textMuted,
+    fontFamily: "monospace",
+    fontSize: 10,
+    height: 200,
+    textAlignVertical: "top",
+  },
+  updateRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingVertical: theme.spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border,
+  },
+  updateLabel: {
+    color: theme.colors.textMuted,
+    fontSize: 13,
+  },
+  updateValue: {
+    color: theme.colors.text,
+    fontWeight: "bold",
+    fontSize: 13,
+  },
+  updateActionContainer: {
+    marginTop: theme.spacing.lg,
+  },
+  updateStatusText: {
+    color: theme.colors.text,
+    fontSize: 13,
+    marginBottom: theme.spacing.md,
+  },
+  iconTextRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  progressContainer: {
+    width: "100%",
+  },
+  progressHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: theme.spacing.xs,
+  },
+  progressText: {
+    color: theme.colors.text,
+    fontSize: 12,
+  },
+  progressBarBg: {
+    height: 6,
+    width: "100%",
+    backgroundColor: theme.colors.border,
+    borderRadius: 3,
+    overflow: "hidden",
+  },
+  progressBarFill: {
+    height: "100%",
+    backgroundColor: theme.colors.accent,
+  },
+  permissionContainer: {
+    gap: theme.spacing.sm,
+  },
+  errorContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  errorText: {
+    color: theme.colors.accent,
+    fontSize: 12,
+  },
+});

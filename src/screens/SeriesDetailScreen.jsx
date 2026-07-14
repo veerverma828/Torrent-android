@@ -4,11 +4,13 @@ import { Star, Film, Cable, ChevronLeft } from "lucide-react-native";
 import { useAppContext } from "../context/AppContext.jsx";
 import { useSettingsContext } from "../context/SettingsContext.jsx";
 import { useStreamActions } from "../hooks/useStreamActions.js";
+import { useHardwareBack } from "../hooks/useHardwareBack.js";
 import { fetchSeriesMeta, fetchEpisodeStreams } from "../services/cinemeta.js";
 import { fetchEpisodeRatings } from "../services/episodeRatings.js";
 import Loader from "../components/common/Loader.jsx";
 import ResultCard from "../components/cards/ResultCard.jsx";
 import EpisodeCard from "../components/cards/EpisodeCard.jsx";
+import VideoPlayer from "../components/player/VideoPlayer.jsx";
 import { theme } from "../styles/theme.js";
 
 export default function SeriesDetailScreen({ route, navigation }) {
@@ -31,6 +33,7 @@ export default function SeriesDetailScreen({ route, navigation }) {
 
   const { addonApis, debridService, realDebridApiKey, torboxApiKey } = useSettingsContext();
   const { initAction } = useStreamActions();
+  useHardwareBack();
 
   const [meta, setMeta] = useState(null);
   const [imageError, setImageError] = useState(false);
@@ -283,6 +286,7 @@ export default function SeriesDetailScreen({ route, navigation }) {
           </View>
         )}
       </ScrollView>
+      <VideoPlayer />
     </View>
   );
 }
