@@ -8,6 +8,7 @@ import { AppState } from "react-native";
 import { traktProvider } from "../../trackers/providers/traktProvider.js";
 import { syncHealthMonitor } from "../monitoring/syncHealthMonitor.js";
 import { syncTelemetry } from "../monitoring/syncTelemetry.js";
+import { storageService } from "../storageService.js";
 
 const STORAGE_KEYS = {
   SYNC_QUEUE: 'trakt_sync_queue',
@@ -63,7 +64,7 @@ class TraktSyncQueue {
 
   loadPersistedState() {
     try {
-      const rateLimitReset = localStorage.getItem(STORAGE_KEYS.RATE_LIMIT_RESET);
+      const rateLimitReset = storageService.get(STORAGE_KEYS.RATE_LIMIT_RESET);
       if (rateLimitReset) {
         this.rateLimitReset = parseInt(rateLimitReset);
       }
@@ -260,7 +261,7 @@ class TraktSyncQueue {
     // Handle rate limiting specially
     if (error.message.includes('429') || error.message.includes('Rate limited')) {
       this.rateLimitReset = Date.now() + RATE_LIMIT_DELAY;
-      localStorage.setItem(STORAGE_KEYS.RATE_LIMIT_RESET, this.rateLimitReset.toString());
+      storageService.set(STORAGE_KEYS.RATE_LIMIT_RESET, this.rateLimitReset.toString());
       return;
     }
 
@@ -342,8 +343,8 @@ class TraktSyncQueue {
   // Storage methods
   getQueue() {
     try {
-      const queue = localStorage.getItem(STORAGE_KEYS.SYNC_QUEUE);
-      return queue ? JSON.parse(queue) : [];
+      const queue = storageService.get(STORAGE_KEYS.SYNC_QUEUE);
+      return queue || [];
     } catch (error) {
       console.error('[SyncQueue] Failed to parse queue:', error);
       return [];
@@ -352,7 +353,7 @@ class TraktSyncQueue {
 
   saveQueue(queue) {
     try {
-      localStorage.setItem(STORAGE_KEYS.SYNC_QUEUE, JSON.stringify(queue));
+      storageService.set(STORAGE_KEYS.SYNC_QUEUE, queue);
     } catch (error) {
       console.error('[SyncQueue] Failed to save queue:', error);
     }
@@ -371,7 +372,7 @@ class TraktSyncQueue {
 
   updateLastSync() {
     try {
-      localStorage.setItem(STORAGE_KEYS.LAST_SYNC, Date.now().toString());
+      storageService.set(STORAGE_KEYS.LAST_SYNC, Date.now().toString());
     } catch (error) {
       console.error('[SyncQueue] Failed to update last sync:', error);
     }
@@ -379,7 +380,7 @@ class TraktSyncQueue {
 
   getSyncStatus() {
     const queue = this.getQueue();
-    const lastSync = localStorage.getItem(STORAGE_KEYS.LAST_SYNC);
+    const lastSync = storageService.get(STORAGE_KEYS.LAST_SYNC);
     
     return {
       isOnline: this.isOnline,
@@ -396,7 +397,7 @@ class TraktSyncQueue {
   async retryAll() {
     this.failedAttempts.clear();
     this.rateLimitReset = 0;
-    localStorage.removeItem(STORAGE_KEYS.RATE_LIMIT_RESET);
+    storageService.remove(STORAGE_KEYS.RATE_LIMIT_RESET);
     await this.processQueue();
   }
 

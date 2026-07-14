@@ -8,6 +8,7 @@
  */
 import { DeviceEventEmitter } from "react-native";
 import { WATCH_COMPLETED_PERCENTAGE } from "../utils/constants.js";
+import { storageService } from "../services/storageService.js";
 
 const STORAGE_KEY = 'watch_progress';
 
@@ -22,8 +23,8 @@ export const getStorage = () => {
   if (cachedStorage) return cachedStorage;
 
   try {
-    const data = localStorage.getItem(STORAGE_KEY);
-    cachedStorage = data ? JSON.parse(data) : { movies: {}, series: {} };
+    const data = storageService.get(STORAGE_KEY);
+    cachedStorage = data || { movies: {}, series: {} };
   } catch {
     cachedStorage = { movies: {}, series: {} };
   }
@@ -42,13 +43,13 @@ export const getStorage = () => {
 const setStorage = (data) => {
   cachedStorage = data; // Immedately update cache
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    storageService.set(STORAGE_KEY, data);
   } catch (e) {
     // Handle local storage quota limit exceeded
     if (e.name === 'QuotaExceededError') {
       cleanupStorage(true);
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(cachedStorage));
+        storageService.set(STORAGE_KEY, cachedStorage);
       } catch (err) {
         console.error('Storage full even after cleanup.', err);
       }
@@ -334,7 +335,7 @@ export const cleanupStorage = (force = false) => {
   }
 
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    storageService.set(STORAGE_KEY, data);
   } catch {
     // Best-effort cleanup write — if it still fails, nothing more we can do.
   }

@@ -73,7 +73,9 @@ export const progressService = {
   async getSyncStatus() {
     if (!isTraktSyncEnabled()) {
       return {
-        isOnline: navigator.onLine,
+        // No @react-native-community/netinfo installed — optimistically
+        // assume online, same convention as syncHealthMonitor/traktSyncQueue.
+        isOnline: true,
         isProcessing: false,
         queueLength: 0,
         activeOperations: 0,

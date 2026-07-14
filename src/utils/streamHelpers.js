@@ -1,3 +1,4 @@
+import Clipboard from "@react-native-clipboard/clipboard";
 import { showToast } from "../components/common/Toast.jsx";
 
 export function formatTorrentio(data) {
@@ -21,6 +22,6 @@ export function formatTorrentio(data) {
 }
 
 export function copyMagnet(magnet) {
-  navigator.clipboard.writeText(magnet);
+  Clipboard.setString(magnet);
   showToast("Magnet link copied", "success");
 }

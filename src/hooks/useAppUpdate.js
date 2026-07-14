@@ -7,6 +7,7 @@ import {
 } from '../lib/apkUpdater'
 
 import { APP_BUILD } from '../generated/buildNumber'
+import { storageService } from '../services/storageService.js'
 
 export const REPO = 'veerverma828/Torrent-android'
 export const CURRENT_BUILD = APP_BUILD
@@ -47,7 +48,7 @@ export function useAppUpdate() {
       const apkAsset = release?.assets?.find((a) => a.name.endsWith('.apk'))
 
       if (latestBuild && apkAsset && latestBuild > CURRENT_BUILD) {
-        const lastDismissed = Number(localStorage.getItem(DISMISSED_KEY) || 0)
+        const lastDismissed = Number(storageService.get(DISMISSED_KEY) || 0)
         setUpdate({ build: latestBuild, apkUrl: apkAsset.browser_download_url })
         // a manual check should surface the update even if it was previously
         // dismissed as a popup -- only auto-checks respect the dismissal
@@ -98,7 +99,7 @@ export function useAppUpdate() {
 
   const dismiss = () => {
     cancelRef.current?.cancel()
-    if (update) localStorage.setItem(DISMISSED_KEY, String(update.build))
+    if (update) storageService.set(DISMISSED_KEY, String(update.build))
     setDismissed(true)
   }
 

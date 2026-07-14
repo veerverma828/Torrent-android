@@ -1,16 +1,16 @@
 import { traktAuth } from "../services/trakt/traktAuth.js";
+import { storageService } from "../services/storageService.js";
 
 const SYNC_MODE_KEY = "syncMode";
 
 // The only sanctioned way to read sync mode outside React. SettingsContext
-// persists this via storageService.set (JSON.stringify), so it must be
-// JSON.parse'd back — a raw localStorage.getItem read here is the exact bug
+// persists this via storageService.set, which already JSON-encodes/decodes
+// — reading it any other way (e.g. a raw MMKV getString) is the exact bug
 // that silently disabled Trakt sync previously.
 export function getSyncMode() {
   try {
-    const raw = localStorage.getItem(SYNC_MODE_KEY);
-    const parsed = raw ? JSON.parse(raw) : null;
-    return parsed === "trakt" ? "trakt" : "local";
+    const mode = storageService.get(SYNC_MODE_KEY);
+    return mode === "trakt" ? "trakt" : "local";
   } catch {
     return "local";
   }

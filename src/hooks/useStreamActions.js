@@ -1,3 +1,4 @@
+import { Linking } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useAppContext } from "../context/AppContext.jsx";
 import { useSettingsContext } from "../context/SettingsContext.jsx";
@@ -51,7 +52,7 @@ export function useStreamActions() {
 
         if (action === "download") {
           if (fileModalData && navigation.canGoBack()) navigation.goBack();
-          window.open(data.downloadUrl);
+          Linking.openURL(data.downloadUrl);
         } else if (action === "stream") {
           setStreamUrl(data.downloadUrl);
         } else if (action === "external") {

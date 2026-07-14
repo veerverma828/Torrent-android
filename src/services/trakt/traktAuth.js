@@ -1,5 +1,6 @@
 import { traktApi } from "./traktApi.js";
 import { API_URL } from "../api.js";
+import { storageService } from "../storageService.js";
 
 const STORAGE_KEYS = {
   ACCESS_TOKEN: "trakt_access_token",
@@ -53,7 +54,7 @@ export const traktAuth = {
             this.saveTokens(data);
             try {
               const profile = await traktApi.getProfile();
-              localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(profile.user));
+              storageService.set(STORAGE_KEYS.USER, profile.user);
             } catch (error) {
               // Handle profile fetch failures, especially account deactivation
               if (error.message.includes("deactivated")) {
@@ -100,16 +101,16 @@ export const traktAuth = {
   },
 
   saveTokens(data) {
-    localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, data.access_token);
-    localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, data.refresh_token);
-    localStorage.setItem(
+    storageService.set(STORAGE_KEYS.ACCESS_TOKEN, data.access_token);
+    storageService.set(STORAGE_KEYS.REFRESH_TOKEN, data.refresh_token);
+    storageService.set(
       STORAGE_KEYS.EXPIRES_AT,
       String(Date.now() + data.expires_in * 1000)
     );
   },
 
   async refreshAccessToken() {
-    const refreshToken = localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
+    const refreshToken = storageService.get(STORAGE_KEYS.REFRESH_TOKEN);
 
     if (!refreshToken) {
       throw new Error("Missing refresh token");
@@ -134,12 +135,12 @@ export const traktAuth = {
   },
 
   async ensureValidToken() {
-    const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+    const token = storageService.get(STORAGE_KEYS.ACCESS_TOKEN);
     if (!token) {
       throw new Error("No Trakt access token found. Please reconnect your Trakt account.");
     }
 
-    const expiresAt = Number(localStorage.getItem(STORAGE_KEYS.EXPIRES_AT) || 0);
+    const expiresAt = Number(storageService.get(STORAGE_KEYS.EXPIRES_AT) || 0);
 
     // Missing/corrupt expiry is NOT "still valid" — treat it the same as
     // "past the refresh window" so a stale/incomplete token gets refreshed
@@ -155,16 +156,15 @@ export const traktAuth = {
 
   logout() {
     Object.values(STORAGE_KEYS).forEach((key) => {
-      localStorage.removeItem(key);
+      storageService.remove(key);
     });
   },
 
   isAuthenticated() {
-    return Boolean(localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN));
+    return Boolean(storageService.get(STORAGE_KEYS.ACCESS_TOKEN));
   },
 
   getUser() {
-    const user = localStorage.getItem(STORAGE_KEYS.USER);
-    return user ? JSON.parse(user) : null;
+    return storageService.get(STORAGE_KEYS.USER);
   },
 };

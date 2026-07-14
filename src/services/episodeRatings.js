@@ -4,14 +4,16 @@
  * keyless source of genuine episode scores. Cached aggressively — ratings
  * barely change.
  */
+import { storageService } from "./storageService.js";
+
 const CACHE_KEY_PREFIX = "epRatings:";
 const TTL = 24 * 60 * 60 * 1000; // 1 day
 
 function readCache(imdbId) {
   try {
-    const raw = localStorage.getItem(CACHE_KEY_PREFIX + imdbId);
-    if (!raw) return null;
-    const { data, timestamp } = JSON.parse(raw);
+    const entry = storageService.get(CACHE_KEY_PREFIX + imdbId);
+    if (!entry) return null;
+    const { data, timestamp } = entry;
     if (Date.now() - timestamp > TTL) return null;
     return data;
   } catch {
@@ -21,7 +23,7 @@ function readCache(imdbId) {
 
 function writeCache(imdbId, data) {
   try {
-    localStorage.setItem(CACHE_KEY_PREFIX + imdbId, JSON.stringify({ data, timestamp: Date.now() }));
+    storageService.set(CACHE_KEY_PREFIX + imdbId, { data, timestamp: Date.now() });
   } catch {
     // storage full — fine, just uncached
   }

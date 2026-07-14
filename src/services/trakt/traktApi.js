@@ -1,11 +1,12 @@
 import { API_URL } from "../api.js";
+import { storageService } from "../storageService.js";
 
 export const traktApi = {
   async request(endpoint, options = {}, _isRetry = false) {
     const { traktAuth } = await import("./traktAuth.js");
     await traktAuth.ensureValidToken();
 
-    const token = localStorage.getItem("trakt_access_token");
+    const token = storageService.get("trakt_access_token");
 
     const headers = {
       "Content-Type": "application/json",

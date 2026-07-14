@@ -3,6 +3,7 @@
  * Tracks sync performance, errors, and user behavior analytics
  */
 import { AppState, Platform } from 'react-native';
+import { storageService } from '../storageService.js';
 
 class SyncTelemetry {
   constructor() {
@@ -310,7 +311,7 @@ class SyncTelemetry {
         timestamp: Date.now()
       };
       
-      localStorage.setItem('trakt_telemetry_metrics', JSON.stringify(persistData));
+      storageService.set('trakt_telemetry_metrics', persistData);
     } catch (error) {
       console.error('[Telemetry] Failed to persist metrics:', error);
     }
@@ -318,9 +319,8 @@ class SyncTelemetry {
 
   loadPersistedMetrics() {
     try {
-      const stored = localStorage.getItem('trakt_telemetry_metrics');
-      if (stored) {
-        const data = JSON.parse(stored);
+      const data = storageService.get('trakt_telemetry_metrics');
+      if (data) {
         // Merge with current metrics (keep recent data)
         if (data.metrics) {
           this.metrics = { ...this.metrics, ...data.metrics };
@@ -340,7 +340,7 @@ class SyncTelemetry {
       userBehavior: { sessionsPerDay: 0, averageWatchTime: 0, completionRate: 0, deviceTypes: new Map() }
     };
     
-    localStorage.removeItem('trakt_telemetry_metrics');
+    storageService.remove('trakt_telemetry_metrics');
   }
 
   // Export for debugging

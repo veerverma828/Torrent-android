@@ -9,6 +9,7 @@ import { AppState } from "react-native";
 import { traktProvider, mapPlaybackItemToLocal, mapHistoryItemToLocal } from "../../trackers/providers/traktProvider.js";
 import { mergeRemoteMovieProgress, mergeRemoteEpisodeProgress } from "../../trackers/progressTracker.js";
 import { isTraktSyncEnabled } from "../../utils/syncMode.js";
+import { storageService } from "../storageService.js";
 
 const LAST_SYNC_KEY = "trakt_last_sync";
 const FOCUS_THROTTLE_MS = 60 * 1000;
@@ -73,7 +74,7 @@ export const traktReconciliation = {
       ]);
       mappedHistory.forEach(applyMapped);
 
-      localStorage.setItem(LAST_SYNC_KEY, Date.now().toString());
+      storageService.set(LAST_SYNC_KEY, Date.now().toString());
       lastReconcileAt = Date.now();
       console.log("[TraktReconciliation] Done");
     } catch (error) {
@@ -112,7 +113,7 @@ export const traktReconciliation = {
   },
 
   getLastSyncedAt() {
-    const raw = localStorage.getItem(LAST_SYNC_KEY);
+    const raw = storageService.get(LAST_SYNC_KEY);
     return raw ? Number(raw) : null;
   },
 };

@@ -1,9 +1,11 @@
+import { Platform } from "react-native";
+
 export function isAndroid() {
-  return /Android/i.test(navigator.userAgent);
+  return Platform.OS === "android";
 }
 
 export function isIOS() {
-  return /iPhone|iPad|iPod/i.test(navigator.userAgent);
+  return Platform.OS === "ios";
 }
 
 export function isMobile() {

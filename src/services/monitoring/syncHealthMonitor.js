@@ -3,6 +3,7 @@
  * Real-time monitoring and alerting for sync system health
  */
 import { getSyncMode } from "../../utils/syncMode.js";
+import { storageService } from "../storageService.js";
 
 class SyncHealthMonitor {
   constructor() {
@@ -234,7 +235,7 @@ class SyncHealthMonitor {
   async checkTraktApi() {
     try {
       // Only check Trakt API if sync mode is enabled and authenticated
-      const accessToken = localStorage.getItem('trakt_access_token');
+      const accessToken = storageService.get('trakt_access_token');
 
       if (getSyncMode() !== 'trakt' || !accessToken) {
         return {
@@ -275,30 +276,21 @@ class SyncHealthMonitor {
     try {
       const testKey = 'health_check_test';
       const testValue = Date.now().toString();
-      
-      localStorage.setItem(testKey, testValue);
-      const retrieved = localStorage.getItem(testKey);
-      localStorage.removeItem(testKey);
-      
+
+      storageService.set(testKey, testValue);
+      const retrieved = storageService.get(testKey);
+      storageService.remove(testKey);
+
       if (retrieved !== testValue) {
         return {
           status: 'critical',
           message: 'Local storage read/write failure'
         };
       }
-      
-      // Check storage quota
-      const usage = JSON.stringify(localStorage).length;
-      const quota = 5 * 1024 * 1024; // 5MB estimate
-      const usagePercent = (usage / quota) * 100;
-      
-      if (usagePercent > 90) {
-        return {
-          status: 'warning',
-          message: `Storage usage high: ${Math.round(usagePercent)}%`
-        };
-      }
-      
+
+      // MMKV has no cheap total-size/quota API (unlike web localStorage's
+      // ~5MB ceiling), and disk-backed storage isn't practically bounded
+      // the same way, so there's no equivalent quota warning here.
       return { status: 'healthy' };
     } catch (error) {
       return {
@@ -309,19 +301,17 @@ class SyncHealthMonitor {
   }
 
   async checkNetworkConnectivity() {
-    if (!navigator.onLine) {
-      return {
-        status: 'critical',
-        message: 'Offline - no network connectivity'
-      };
-    }
+    // No @react-native-community/netinfo dependency is installed, so (as
+    // elsewhere in the sync code) we optimistically assume online rather
+    // than have a real check -- request failures surface connectivity
+    // issues through the other health checks instead.
     return { status: 'healthy' };
   }
 
   async checkAuthentication() {
     try {
-      const token = localStorage.getItem('trakt_access_token');
-      const expiresAt = localStorage.getItem('trakt_token_expires_at');
+      const token = storageService.get('trakt_access_token');
+      const expiresAt = storageService.get('trakt_token_expires_at');
 
       // Only check authentication if Trakt sync mode is enabled
       if (getSyncMode() !== 'trakt') {

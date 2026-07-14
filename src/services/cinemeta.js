@@ -1,6 +1,7 @@
 import { CINEMETA_BASE } from "../utils/constants.js";
 import { getBaseAddonUrl } from "../utils/navigationHelpers.js";
 import { formatTorrentio } from "../utils/streamHelpers.js";
+import { storageService } from "./storageService.js";
 
 const CACHE_TTL = 5 * 60 * 1000;
 const STREAM_CACHE_TTL = 60 * 1000;
@@ -9,10 +10,10 @@ const responseCache = new Map();
 
 function readCatalogStorage(key) {
   try {
-    const raw = localStorage.getItem(key);
-    if (!raw) return null;
+    const entry = storageService.get(key);
+    if (!entry) return null;
 
-    const { data, timestamp } = JSON.parse(raw);
+    const { data, timestamp } = entry;
     if (Date.now() - timestamp > CATALOG_STORAGE_TTL) return null;
 
     return data;
@@ -23,7 +24,7 @@ function readCatalogStorage(key) {
 
 function writeCatalogStorage(key, data) {
   try {
-    localStorage.setItem(key, JSON.stringify({ data, timestamp: Date.now() }));
+    storageService.set(key, { data, timestamp: Date.now() });
   } catch {
     // storage full or unavailable — skip caching silently
   }
